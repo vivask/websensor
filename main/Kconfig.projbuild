@@ -1,0 +1,111 @@
+menu "Websensor Configuration"
+
+    choice WEB_DEPLOY_MODE
+        prompt "Website deploy mode"
+        default WEB_DEPLOY_SEMIHOST
+        help
+            Select website deploy mode.
+            You can deploy website to host, and ESP32 will retrieve them in a semihost way (JTAG is needed).
+            You can deploy website to SD card or SPI flash, and ESP32 will retrieve them via SDIO/SPI interface.
+            Detailed operation steps are listed in the example README file.
+        config WEB_DEPLOY_SEMIHOST
+            bool "Deploy website to host (JTAG is needed)"
+            help
+                Deploy website to host.
+                It is recommended to choose this mode during developing.
+        config WEB_DEPLOY_SD
+            depends on IDF_TARGET_ESP32
+            bool "Deploy website to SD card"
+            help
+                Deploy website to SD card.
+                Choose this production mode if the size of website is too large (bigger than 2MB).
+        config WEB_DEPLOY_SF
+            bool "Deploy website to SPI Nor Flash"
+            help
+                Deploy website to SPI Nor Flash.
+                Choose this production mode if the size of website is small (less than 2MB).
+    endchoice
+
+    if WEB_DEPLOY_SEMIHOST
+        config HOST_PATH_TO_MOUNT
+            string "Host path to mount (e.g. absolute path to web dist directory)"
+            default "PATH-TO-WEB-DIST_DIR"
+            help
+                When using semihost in ESP32, you should specify the host path which will be mounted to VFS.
+                Note that only absolute path is acceptable.
+    endif
+
+    if WEB_DEPLOY_SF
+        config SPIFFS_CHECK_ON_START
+            bool "Check spiffs after mount"
+            default false
+    endif
+
+    if WEB_DEPLOY_SF || WEB_DEPLOY_SD
+        config MAX_FILES
+            int "Maximal files use"
+            default 5
+    endif
+
+    if WEB_DEPLOY_SD 
+        config USE_SPI_MODE
+            bool "Use SPI mode"
+            default false
+    endif    
+
+    config WEB_BASE_PATH
+        string "VFS base path"
+        default "/www"
+        help
+            Specify VFS base path.
+
+    config WEB_MOUNT_POINT
+        string "Website mount point in VFS"
+        default "www"
+        help
+            Specify the mount point in VFS.
+
+    config WEB_WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            SSID (network name) for the example to connect to.
+
+    config WEB_WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    config WEB_WIFI_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            WiFi channel (network channel) for the example to use.
+
+    config WEB_AP_IP
+        string "Access Point IP Address"
+        default "10.10.0.1"
+        help
+            This is used for the redirection to the captive portal. It is recommended to leave unchanged.
+
+    config WEB_AP_GATEWAY
+        string "Access Point IP Gateway"
+        default "10.10.0.1"
+        help
+            This is used for the redirection to the captive portal. It is recommended to leave unchanged.
+
+    config WEB_AP_NETMASK
+        string "Access Point IP Netmask"
+        default "255.255.255.0"
+        help
+            This is used for the redirection to the captive portal. It is recommended to leave unchanged.
+
+    config WEB_MAX_STA_CONN
+        int "Maximal STA connections"
+        default 4
+        help
+            Max number of the STA connects to AP.
+
+endmenu

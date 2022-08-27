@@ -1,0 +1,21 @@
+---
+components:
+  - name: softap
+    description: |
+      WiFi Access Point
+    group:
+      name: wifi
+    groups:
+      - name: wifi
+    code_owners:
+      - name: Vivask
+    depends:
+      - name: log
+    thread_safe: yes
+    targets:
+      - name: esp32
+    licenses:
+      - name: MIT
+    copyrights:
+      - name: Vivask
+        year: 2022
