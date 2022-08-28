@@ -21,10 +21,10 @@
 #include "lwip/inet.h"
 #include "lwip/ip4_addr.h"
 
-/* The examples use WiFi configuration that you can set via project configuration menu.
+/* The  use WiFi configuration that you can set via project configuration menu.
 
    If you'd rather not, just change the below entries to strings with
-   the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
+   the config you want - ie #define WEB_WIFI_SSID "mywifissid"
 */
 #define WEB_WIFI_SSID      CONFIG_WEB_WIFI_SSID
 #define WEB_WIFI_PASS      CONFIG_WEB_WIFI_PASSWORD

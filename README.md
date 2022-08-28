@@ -72,4 +72,12 @@ Run `idf.py -p PORT flash monitor` to build and flash the project..
 
 See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
 
-#
+# Create vue project
+
+vue create web
+Select Vue 2
+cd web
+vue add vuetify  
+npm install --save vue-router
+npm install --save axios
+npm remove @vue/cli-plugin-eslint

@@ -20,6 +20,8 @@
 #include "storage.h"
 #include "repo.h"
 
+#define DEFAULT_QUERY_SIZE 256
+
 static const char *TAG = "handlers";
 
 static bool hwclock_init = false;
@@ -34,6 +36,10 @@ static void get_date(char* buf, const time_t time){
 static void get_time(char* buf, const time_t time){
     struct tm* t = localtime(&time);
     sprintf(buf, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
+}
+
+static char* get_value_from_uri(httpd_req_t *req, const char* uri){
+    return req->uri + strlen(uri) + 1;
 }
 
 static char* get_request_buffer(httpd_req_t *req, esp_err_t* err){
@@ -213,19 +219,47 @@ esp_err_t settings_end_post_handler(httpd_req_t *req){
     return ESP_OK;    
 }
 
-esp_err_t ds18b20_data_post_handler(httpd_req_t *req){
+static esp_err_t prepare_ds18b20_query(char* query, const char* filter){
+    const char all[] = "all";
+    const char min[] = "min";
+    const char max[] = "max";
+    const char avg[] = "avg";
+
+    if( strncmp(filter, all, sizeof(all)) == 0 ){
+        sprintf(query, "SELECT * FROM ds18b20;");
+        return ESP_OK;
+    }
+
+    if( strncmp(filter, avg, sizeof(avg)) == 0 ){
+        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT AVG(temperarture) FROM ds18b20) THEN 'I AM AVG' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
+        return ESP_OK;
+    }
+
+    if( strncmp(filter, min, sizeof(min)) == 0 ){
+        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT MIN(temperarture) FROM ds18b20) THEN 'I AM MIN' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
+        return ESP_OK;
+    }
+
+    if( strncmp(filter, max, sizeof(max)) == 0 ){
+        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT MAX(temperarture) FROM ds18b20) THEN 'I AM MAX' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
+        return ESP_OK;
+    }
+
+    ESP_LOGE(TAG, "Unknown filter: %s", filter);
+    return ESP_FAIL;
+}
+
+esp_err_t ds18b20_data_get_handler(httpd_req_t *req){
     esp_err_t ret;
-    char* buf = get_request_buffer(req, &ret);
-    if( ret != ESP_OK ){
+
+    char query[DEFAULT_QUERY_SIZE];
+    char* filter = get_value_from_uri(req, "/api/v1/ds18b20/read");
+    ret = prepare_ds18b20_query(query, filter);
+    if(ret != ESP_OK){
         return ret;
     }
 
-    cJSON *root = cJSON_Parse(buf);
-    int begin_idx = cJSON_GetObjectItem(root, "begin_idx")->valueint;
-    int end_idx = cJSON_GetObjectItem(root, "end_idx")->valueint;
-    cJSON_Delete(root);
-
-    ret = fetch_ds18b20(begin_idx, end_idx);
+    ret = fetch_ds18b20(query);
     if(ret != ESP_OK){
         return ret;
     }
@@ -233,7 +267,7 @@ esp_err_t ds18b20_data_post_handler(httpd_req_t *req){
     ds18b20_data_t* rows = (ds18b20_data_t*)sql_res->data;
 
     httpd_resp_set_type(req, "application/json");
-    root = cJSON_CreateObject();
+    cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(root, "size", sql_res->rows);
     cJSON *items = cJSON_AddArrayToObject(root, "items");
     for(int i = 0; i < sql_res->rows; i++){
@@ -253,7 +287,7 @@ esp_err_t ds18b20_data_post_handler(httpd_req_t *req){
     return ESP_OK;
 }
 
-esp_err_t bmx280_data_post_handler(httpd_req_t *req){
+esp_err_t bmx280_data_get_handler(httpd_req_t *req){
     esp_err_t ret;
     char* buf = get_request_buffer(req, &ret);
     if( ret != ESP_OK ){

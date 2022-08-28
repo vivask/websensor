@@ -41,10 +41,7 @@ export default {
   methods: {
     loadItems() {
       this.$ajax
-        .post("/api/v1/ds18b20/read", {
-          begin_idx: this.begin_idx,
-          end_idx: this.end_idx
-        })
+        .get("/api/v1/ds18b20/read/all")
         .then(response => {
           console.log(response);
           this.items = response.data.items;

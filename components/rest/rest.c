@@ -151,22 +151,22 @@ esp_err_t start_rest_server(const char *base_path)
     httpd_register_uri_handler(server, &settings_end_post_uri); 
 
     /* URI handler for fetching ds18b20 measurements */
-    httpd_uri_t ds18b20_data_post_uri = {
-        .uri = "/api/v1/ds18b20/read",
-        .method = HTTP_POST,
-        .handler = ds18b20_data_post_handler,
+    httpd_uri_t ds18b20_data_get_uri = {
+        .uri = "/api/v1/ds18b20/read/*",
+        .method = HTTP_GET,
+        .handler = ds18b20_data_get_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &ds18b20_data_post_uri);
+    httpd_register_uri_handler(server, &ds18b20_data_get_uri);
 
     /* URI handler for fetching bmx280 measurements */
-    httpd_uri_t bmx280_data_post_uri = {
-        .uri = "/api/v1/bmx280/read",
+    httpd_uri_t bmx280_data_get_uri = {
+        .uri = "/api/v1/bmx280/read/*",
         .method = HTTP_POST,
-        .handler = bmx280_data_post_handler,
+        .handler = bmx280_data_get_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &bmx280_data_post_uri);
+    httpd_register_uri_handler(server, &bmx280_data_get_uri);
 
     /* URI handler for fetching temperature data */
     httpd_uri_t temperature_data_get_uri = {

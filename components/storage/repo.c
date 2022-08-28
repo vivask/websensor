@@ -139,12 +139,11 @@ esp_err_t clear_bmx280(){
     return ESP_OK;
 }
 
-esp_err_t fetch_ds18b20(const int from, const int to){
+esp_err_t fetch_ds18b20(const char* query){
     sqlite3_stmt*        stmt;
     int                  rows = 0;
-    const char           query[] = "SELECT * FROM ds18b20;";
 
-    int rc = sqlite3_prepare(db, query, sizeof(query), &stmt, NULL);
+    int rc = sqlite3_prepare(db, query, strlen(query), &stmt, NULL);
     if( rc != SQLITE_OK){
         return ESP_FAIL;
     }

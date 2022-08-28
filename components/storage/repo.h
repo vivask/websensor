@@ -41,7 +41,7 @@ esp_err_t insert_ds18b20(ds18b20_data_t *data);
 esp_err_t insert_bmx280(bmx280_data_t *data);
 esp_err_t clear_ds18b20();
 esp_err_t clear_bmx280();
-esp_err_t fetch_ds18b20(const int from, const int to);
+esp_err_t fetch_ds18b20(const char* query);
 sql_result_t* get_ds18b20();
 void free_ds18b20();
 esp_err_t fetch_bmx280(const int from, const int to);
