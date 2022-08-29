@@ -38,15 +38,13 @@ export default {
     };
   },
   mounted() {
-    this.loadItems();
+    this.loadItems(this.$route.query.filter);
   },
   methods: {
-    loadItems() {
+    loadItems(filter) {
+      const uri = "/api/v1/bmx280/read/" + filter;
       this.$ajax
-        .post("/api/v1/bmx280/read", {
-          begin_idx: this.begin_idx,
-          end_idx: this.end_idx
-        })
+        .get(uri)
         .then(response => {
           console.log(response);
           this.items = response.data.items;

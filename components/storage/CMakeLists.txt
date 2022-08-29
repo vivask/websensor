@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS sdmmc.c spiffs.c semihost.c repo.c
+    SRCS sdmmc.c spiffs.c semihost.c
     INCLUDE_DIRS .
-    REQUIRES log spiffs fatfs esp32-idf-sqlite3;
+    REQUIRES log spiffs fatfs json;
 )

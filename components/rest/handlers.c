@@ -17,8 +17,7 @@
 #include "cJSON.h"
 #include "handlers.h"
 #include "peripheral.h"
-#include "storage.h"
-#include "repo.h"
+#include "spiffs.h"
 
 #define DEFAULT_QUERY_SIZE 256
 
@@ -76,19 +75,6 @@ static bool start_peripheral_devices(){
         peripheral_stop(); 
     }    
     return false;
-}
-
-/* Simple handler for getting temperature data */
-esp_err_t temperature_data_get_handler(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "application/json");
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "raw", esp_random() % 20);
-    const char *sys_info = cJSON_Print(root);
-    httpd_resp_sendstr(req, sys_info);
-    free((void *)sys_info);
-    cJSON_Delete(root);
-    return ESP_OK;
 }
 
 esp_err_t settings_info_get_handler(httpd_req_t *req){
@@ -219,110 +205,51 @@ esp_err_t settings_end_post_handler(httpd_req_t *req){
     return ESP_OK;    
 }
 
-static esp_err_t prepare_ds18b20_query(char* query, const char* filter){
-    const char all[] = "all";
-    const char min[] = "min";
-    const char max[] = "max";
-    const char avg[] = "avg";
-
-    if( strncmp(filter, all, sizeof(all)) == 0 ){
-        sprintf(query, "SELECT * FROM ds18b20;");
-        return ESP_OK;
-    }
-
-    if( strncmp(filter, avg, sizeof(avg)) == 0 ){
-        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT AVG(temperarture) FROM ds18b20) THEN 'I AM AVG' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
-        return ESP_OK;
-    }
-
-    if( strncmp(filter, min, sizeof(min)) == 0 ){
-        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT MIN(temperarture) FROM ds18b20) THEN 'I AM MIN' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
-        return ESP_OK;
-    }
-
-    if( strncmp(filter, max, sizeof(max)) == 0 ){
-        sprintf(query, "SELECT *, strftime('%H:00:00', date_time) as hour, CASE WHEN temperature = (SELECT MAX(temperarture) FROM ds18b20) THEN 'I AM MAX' ELSE NULL FROM ds18b20 GROUP BY hour ORDER BY date_time DESC LIMIT 24;");
-        return ESP_OK;
-    }
-
-    ESP_LOGE(TAG, "Unknown filter: %s", filter);
-    return ESP_FAIL;
-}
-
-esp_err_t ds18b20_data_get_handler(httpd_req_t *req){
+esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
     esp_err_t ret;
-
-    char query[DEFAULT_QUERY_SIZE];
-    char* filter = get_value_from_uri(req, "/api/v1/ds18b20/read");
-    ret = prepare_ds18b20_query(query, filter);
-    if(ret != ESP_OK){
-        return ret;
-    }
-
-    ret = fetch_ds18b20(query);
-    if(ret != ESP_OK){
-        return ret;
-    }
-    sql_result_t* sql_res = get_ds18b20();
-    ds18b20_data_t* rows = (ds18b20_data_t*)sql_res->data;
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "size", sql_res->rows);
-    cJSON *items = cJSON_AddArrayToObject(root, "items");
-    for(int i = 0; i < sql_res->rows; i++){
-        cJSON *item = cJSON_CreateObject();
-        char time[20];
-        get_date_time(time, rows[i].date_time);
-        cJSON_AddStringToObject(item, "date_time", time);
-        cJSON_AddNumberToObject(item, "temperature", rows[i].temperature);
-        cJSON_AddItemToArray(items, item);
+    ret = fetch_all_ds18b20(root);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
     }
-    free_ds18b20();
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
     return ESP_OK;
 }
 
-esp_err_t bmx280_data_get_handler(httpd_req_t *req){
+esp_err_t ds18b20_data_get_min_handler(httpd_req_t *req){
     esp_err_t ret;
-    char* buf = get_request_buffer(req, &ret);
-    if( ret != ESP_OK ){
-        return ret;
-    }
-
-    cJSON *root = cJSON_Parse(buf);
-    int begin_idx = cJSON_GetObjectItem(root, "begin_idx")->valueint;
-    int end_idx = cJSON_GetObjectItem(root, "end_idx")->valueint;
-    cJSON_Delete(root);
-
-    ret = fetch_bmx280(begin_idx, end_idx);
-    if(ret != ESP_OK){
-        return ret;
-    }
-    sql_result_t* sql_res = get_bmx280();
-    bmx280_data_t* rows = (bmx280_data_t*)sql_res->data;
 
     httpd_resp_set_type(req, "application/json");
-    root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "size", sql_res->rows);
-    cJSON *items = cJSON_AddArrayToObject(root, "items");
-    for(int i = 0; i < sql_res->rows; i++){
-        cJSON *item = cJSON_CreateObject();
-        char time[20];
-        get_date_time(time, rows[i].date_time);
-        cJSON_AddStringToObject(item, "date_time", time);
-        cJSON_AddNumberToObject(item, "temperature", rows[i].temperature);
-        cJSON_AddNumberToObject(item, "pressure", rows[i].pressure);
-        cJSON_AddNumberToObject(item, "humidity", rows[i].humidity);
-        cJSON_AddItemToArray(items, item);
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_ds18b20(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
     }
-    free_bmx280();
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_all_bmx280(root);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);

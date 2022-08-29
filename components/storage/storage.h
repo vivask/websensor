@@ -19,10 +19,19 @@
 extern "C" {
 #endif
 
+typedef struct{
+    time_t date_time;
+    float temperature;
+    float pressure;
+    float humidity;
+}bmx280_data_t;
+
+typedef struct{
+    time_t date_time;
+    float temperature;
+}ds18b20_data_t;
 
 esp_err_t init_fs(void);
-size_t spiffs_available_bytes();
-
 
 #ifdef __cplusplus
 }

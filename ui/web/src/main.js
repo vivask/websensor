@@ -9,7 +9,7 @@ Vue.config.productionTip = false
 Vue.prototype.$ajax = axios
 
 new Vue({
-  router,
   vuetify,
+  router,
   render: h => h(App)
 }).$mount('#app')

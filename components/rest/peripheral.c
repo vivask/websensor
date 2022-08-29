@@ -4,8 +4,7 @@
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "storage.h"
-#include "repo.h"
+#include "spiffs.h"
 #include "i2cdev.h"
 #include "bmp280.h"
 #include "ds18x20.h"
@@ -120,8 +119,7 @@ static void task_pool(void* arg){
 void peripheral_start(time_t begin, time_t end){
     tBeginPool = begin;
     tEndPool = end;
-    clear_ds18b20();
-    clear_bmx280();
+    remove_all_data();
     xTaskCreatePinnedToCore(task_pool, "task_pool", configMINIMAL_STACK_SIZE*8, &xTaskPool, 10, NULL, 0);
 }
 

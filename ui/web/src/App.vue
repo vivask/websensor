@@ -22,22 +22,23 @@
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
           </template>
-  
-          <v-list>
-            <v-list-item
-              v-for="(option, index) in options"
-              :key="index"
-              @click="() => {}"
+          
+          <template>
+            <v-container
+              class="pl-5 mt-10"
+              fluid
             >
-              <v-list-item-action>
-                <v-checkbox
-                  :input-value="active"
-                  color="deep-purple accent-4"
-                ></v-checkbox>
-              </v-list-item-action>              
-              <v-list-item-title>{{ option.title }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
+              <v-radio-group v-model="radioGroup">
+                <v-radio
+                  v-for="(option, index) in options"
+                  :key="index"
+                  :label="`${option.title}`"
+                  :value="index"
+                  @click="menuRadioClick()"
+                ></v-radio>
+              </v-radio-group>
+            </v-container>
+          </template>
         </v-menu>        
     </v-app-bar>
 
@@ -51,7 +52,7 @@
           <v-list-item
             v-for="(item, index) in items"
             :key="index"
-            @click="menuActionClick(item.route)"
+            @click="menuActionClick(index)"
           >
             <v-list-item-icon>
               <v-icon>{{ item.icon }}</v-icon>
@@ -75,15 +76,20 @@
 </template>
 
 <script>
+import Ds18b20Ref from './components/Ds18b20.vue'
 export default {
+  components: { 'foo': Ds18b20Ref },
   name: "App",
   data() {
     return {
       menu: null,
       items: [
-        { title: 'Settings', icon: 'mdi-cog', route: '/' },
+        { title: 'Settings', icon: 'mdi-cog', path: '/', name: 'settings' },
+//        { title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' },
+//        { title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' }
       ],
       options: [
+        { title: 'All'},
         { title: 'Average'},
         { title: 'Minimum'},
         { title: 'Maximum'},
@@ -91,6 +97,8 @@ export default {
       drawer: true,
       miniVariant: false,
       visible: false,
+      radioGroup: 0,
+      menuIndex: 0,
     };
   },
   mounted() {
@@ -98,10 +106,10 @@ export default {
       .get("/api/v1/settings/info")
       .then(response => {
         if(response.data.ds18b20_available){
-          this.items.push({ title: 'Ds18b20', icon: 'mdi-thermometer', route: '/ds18b20' });
+          this.items.push({ title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' });
         }
         if(response.data.bmx280_available){
-          this.items.push({ title: 'Bmx280', icon: 'mdi-water-percent', route: '/bmx280' });
+          this.items.push({ title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' });
         }
       })
       .catch(error => {
@@ -109,19 +117,51 @@ export default {
       });
   },
   methods: {
-    menuActionClick(route){
-      this.visible = (route != '/');
-      this.$router.push(route);
+    menuActionClick(index){
+      this.menuIndex = index;
+      const path = this.items[this.menuIndex].path;
+      if(path == '/'){
+        this.visible = false;  
+        this.$router.push(path);
+      }else{
+        this.visible = true;
+        this.$router.push(this.getRoute(path));
+      }
     },
     showChart(){
       if(this.$route.name == 'ds18b20') {
-        alert(this.$route.name);
         this.$router.push('/ds18b20/chart');
+        return;
       }
       if(this.$route.name == 'bmx280') {
         this.$router.push('/bmx280/chart');
+            return;
       }
-    }
+    },
+    menuRadioClick(){
+      const path = this.items[this.menuIndex].path;
+      if( path != '/' ){
+        switch(path){
+          case '/ds18b20':
+            this.foo.loadItems(this.getFilter());
+        }
+      } 
+    },
+    getRoute(path){
+      return {path: path, query : {filter: this.getFilter()}};
+    },        
+    getFilter(){
+      switch(this.radioGroup){
+        case 0:
+          return 'all';
+        case 1:
+          return 'avg';
+        case 2:
+          return 'min';
+        case 3:
+          return 'max';
+      }
+    },        
   }
 };
 </script>

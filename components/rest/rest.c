@@ -109,6 +109,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 10;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
     ESP_LOGI(TAG, "Starting HTTP Server");
@@ -150,32 +151,32 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &settings_end_post_uri); 
 
-    /* URI handler for fetching ds18b20 measurements */
-    httpd_uri_t ds18b20_data_get_uri = {
-        .uri = "/api/v1/ds18b20/read/*",
+    /* URI handler for fetching ds18b20 all measurements */
+    httpd_uri_t ds18b20_data_get_all_uri = {
+        .uri = "/api/v1/ds18b20/read/all",
         .method = HTTP_GET,
-        .handler = ds18b20_data_get_handler,
+        .handler = ds18b20_data_get_all_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &ds18b20_data_get_uri);
+    httpd_register_uri_handler(server, &ds18b20_data_get_all_uri);
 
-    /* URI handler for fetching bmx280 measurements */
-    httpd_uri_t bmx280_data_get_uri = {
-        .uri = "/api/v1/bmx280/read/*",
-        .method = HTTP_POST,
-        .handler = bmx280_data_get_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &bmx280_data_get_uri);
-
-    /* URI handler for fetching temperature data */
-    httpd_uri_t temperature_data_get_uri = {
-        .uri = "/api/v1/temp/raw",
+    /* URI handler for fetching ds18b20 min measurements */
+    httpd_uri_t ds18b20_data_get_min_uri = {
+        .uri = "/api/v1/ds18b20/read/min",
         .method = HTTP_GET,
-        .handler = temperature_data_get_handler,
+        .handler = ds18b20_data_get_min_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &temperature_data_get_uri);
+    httpd_register_uri_handler(server, &ds18b20_data_get_min_uri);
+
+    /* URI handler for fetching bmx280 all measurements */
+    httpd_uri_t bmx280_data_get_all_uri = {
+        .uri = "/api/v1/bmx280/read/all",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_all_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_all_uri);
 
     /* URI handler for getting web server files */
     httpd_uri_t common_get_uri = {
