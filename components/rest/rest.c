@@ -56,12 +56,15 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
     char filepath[FILE_PATH_MAX];
 
     rest_server_context_t *rest_context = (rest_server_context_t *)req->user_ctx;
+    ESP_LOGI(TAG, "Base path: %s", rest_context->base_path);
     strlcpy(filepath, rest_context->base_path, sizeof(filepath));
+    ESP_LOGI(TAG, "URI: %s", req->uri);
     if (req->uri[strlen(req->uri) - 1] == '/') {
         strlcat(filepath, "/index.html", sizeof(filepath));
     } else {
         strlcat(filepath, req->uri, sizeof(filepath));
     }
+    ESP_LOGI(TAG, "File path: %s", filepath);
     int fd = open(filepath, O_RDONLY, 0);
     if (fd == -1) {
         ESP_LOGE(TAG, "Failed to open file : %s", filepath);

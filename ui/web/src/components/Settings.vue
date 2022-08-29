@@ -66,7 +66,7 @@ export default {
       begin_date: '2022-08-24', 
       begin_time: '10:00:01', 
       end_date: '2022-08-24', 
-      end_time: '10:01:00',
+      end_time: '10:20:00',
       sys_set: false,
       begin_set: false,
       end_set: false 

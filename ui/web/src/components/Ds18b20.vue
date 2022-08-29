@@ -51,7 +51,10 @@ export default {
         .catch(error => {
           console.log(error);
         });
-    } 
+    },
+    refresh: function() { 
+      this.loadItems(this.$route.query.filter);
+    }
   }
 };
 </script>

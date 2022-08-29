@@ -76,9 +76,7 @@
 </template>
 
 <script>
-import Ds18b20Ref from './components/Ds18b20.vue'
 export default {
-  components: { 'foo': Ds18b20Ref },
   name: "App",
   data() {
     return {
@@ -143,7 +141,7 @@ export default {
       if( path != '/' ){
         switch(path){
           case '/ds18b20':
-            this.foo.loadItems(this.getFilter());
+          this.$route.component.Ds18b20.items = [];
         }
       } 
     },
