@@ -15,7 +15,7 @@
 #include "cJSON.h"
 #include "handlers.h"
 
-static const char *TAG = "rest";
+static const char *TAG = "REST";
 
 #define REST_CHECK(a, str, goto_tag, ...)                                              \
     do                                                                                 \

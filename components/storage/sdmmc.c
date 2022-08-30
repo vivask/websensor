@@ -95,6 +95,15 @@ esp_err_t init_fs(void)
     }
     /* print card info if mount successfully */
     sdmmc_card_print_info(stdout, card);
+
+    const char *test_file = MOUNT_POINT"/index.html";
+    FILE* f = fopen(test_file, "r");
+    if(f == NULL){
+        ESP_LOGE(TAG, "Failed to opnen file for reading");
+        return ESP_OK;
+    }
+    ESP_LOGI(TAG, "Succes open file: %s", test_file);
+    fclose(f);
     return ESP_OK;
 }
 #endif

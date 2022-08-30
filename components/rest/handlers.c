@@ -21,7 +21,7 @@
 
 #define DEFAULT_QUERY_SIZE 256
 
-static const char *TAG = "handlers";
+static const char *TAG = "HANDLERS";
 
 static bool hwclock_init = false;
 static time_t begin_loging = 0;
