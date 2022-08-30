@@ -17,7 +17,7 @@
 #include "cJSON.h"
 #include "handlers.h"
 #include "peripheral.h"
-#include "spiffs.h"
+#include "storage.h"
 
 #define DEFAULT_QUERY_SIZE 256
 

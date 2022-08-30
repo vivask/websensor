@@ -8,14 +8,17 @@
 
 static const char *TAG = "SDMMC";
 
+#define MOUNT_POINT "/" CONFIG_WEB_MOUNT_POINT
+
 #if CONFIG_USE_SPI_MODE
 // Pin mapping when using SPI mode.
 // With this mapping, SD card can be used both in SPI and 1-line SD mode.
 // Note that a pull-up on CS line is required in SD mode.
 #define PIN_NUM_MISO    19
-#define PIN_NUM_MOSI    21
+#define PIN_NUM_MOSI    23
 #define PIN_NUM_CLK     18 
-#define PIN_NUM_CS      5 
+#define PIN_NUM_CS      5
+
 #define SPI_DMA_CHAN    1
 #endif //USE_SPI_MODE
 
@@ -27,7 +30,6 @@ esp_err_t init_fs(void)
     ESP_LOGI(TAG, "Using SPI peripheral"); 
     
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-
     spi_bus_config_t bus_cfg = {
         .mosi_io_num = PIN_NUM_MOSI,
         .miso_io_num = PIN_NUM_MISO,
@@ -37,7 +39,7 @@ esp_err_t init_fs(void)
         .max_transfer_sz = 4000,
     };
 
-    ret = spi_bus_initialize(host.slot, &bus_cfg, SPI_DMA_CHAN);
+    ret = spi_bus_initialize(host.slot, &bus_cfg, SDSPI_DEFAULT_DMA);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize bus.");
         return ret;
@@ -49,7 +51,8 @@ esp_err_t init_fs(void)
 
 #else
     ESP_LOGI(TAG, "Using SDMMC peripheral");
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    //sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    
 
     // To use 1-line SD mode, uncomment the following line:
     // host.flags = SDMMC_HOST_FLAG_1BIT;
@@ -75,7 +78,13 @@ esp_err_t init_fs(void)
     };
 
     sdmmc_card_t *card;
-    ret = esp_vfs_fat_sdmmc_mount(CONFIG_WEB_MOUNT_POINT, &host, &slot_config, &mount_config, &card);
+
+#if CONFIG_USE_SPI_MODE    
+    ret = esp_vfs_fat_sdspi_mount(MOUNT_POINT, &host, &slot_config, &mount_config, &card);
+#else
+    ret = esp_vfs_fat_sdmmc_mount(MOUNT_POINT, &host, &slot_config, &mount_config, &card);
+#endif
+
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem.");

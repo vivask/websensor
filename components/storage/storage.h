@@ -14,6 +14,10 @@
 
 #include <stdint.h>
 #include <esp_err.h>
+#include <cJSON.h>
+#if CONFIG_WEB_DEPLOY_SF
+#include "spiffs.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +36,17 @@ typedef struct{
 }ds18b20_data_t;
 
 esp_err_t init_fs(void);
+void remove_all_data();
+esp_err_t insert_ds18b20(const ds18b20_data_t* data);
+esp_err_t insert_bmx280(const bmx280_data_t* data);
+esp_err_t fetch_all_ds18b20(cJSON* root);
+esp_err_t fetch_min_ds18b20(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_max_ds18b20(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_avg_ds18b20(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_all_bmx280(cJSON* root);
+esp_err_t fetch_min_bmx280(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_max_bmx280(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_avg_bmx280(cJSON* root, time_t begin, time_t end);
 
 #ifdef __cplusplus
 }

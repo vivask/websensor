@@ -4,7 +4,7 @@
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "spiffs.h"
+#include "storage.h"
 #include "i2cdev.h"
 #include "bmp280.h"
 #include "ds18x20.h"
