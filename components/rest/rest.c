@@ -56,15 +56,12 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
     char filepath[FILE_PATH_MAX];
 
     rest_server_context_t *rest_context = (rest_server_context_t *)req->user_ctx;
-    ESP_LOGI(TAG, "Base path: %s", rest_context->base_path);
     strlcpy(filepath, rest_context->base_path, sizeof(filepath));
-    ESP_LOGI(TAG, "URI: %s", req->uri);
     if (req->uri[strlen(req->uri) - 1] == '/') {
         strlcat(filepath, "/index.html", sizeof(filepath));
     } else {
         strlcat(filepath, req->uri, sizeof(filepath));
     }
-    ESP_LOGI(TAG, "File path: %s", filepath);
     int fd = open(filepath, O_RDONLY, 0);
     if (fd == -1) {
         ESP_LOGE(TAG, "Failed to open file : %s", filepath);
@@ -171,6 +168,15 @@ esp_err_t start_rest_server(const char *base_path)
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &ds18b20_data_get_min_uri);
+
+    /* URI handler for fetching ds18b20 max measurements */
+    httpd_uri_t ds18b20_data_get_max_uri = {
+        .uri = "/api/v1/ds18b20/read/max",
+        .method = HTTP_GET,
+        .handler = ds18b20_data_get_min_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &ds18b20_data_get_max_uri);
 
     /* URI handler for fetching bmx280 all measurements */
     httpd_uri_t bmx280_data_get_all_uri = {

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/unistd.h>
 #include "esp_log.h"
@@ -133,7 +134,8 @@ esp_err_t fetch_min_ds18b20(cJSON* root, time_t begin, time_t end){
     int count = 0;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
     time_t next = next_hour(begin);
-    ds18b20_data_t data, min = {0};
+    ds18b20_data_t data, min;
+    memset(&min, 0x00, sizeof(ds18b20_data_t));
     do{
         size_t sz = fread(&data, sizeof(ds18b20_data_t), 1, f);
         if(sz != sizeof(ds18b20_data_t) && ferror(f)){
@@ -141,14 +143,49 @@ esp_err_t fetch_min_ds18b20(cJSON* root, time_t begin, time_t end){
             ret = ESP_FAIL;
             break; 
         }
-        if( min.date_time == 0 || min.temperature < data.temperature){
-            min = data;
+        if( min.date_time == 0 || min.temperature > data.temperature){
+            memcpy(&min, &data, sizeof(ds18b20_data_t));
         }
         if( data.date_time >= next || feof(f) || data.date_time >= end ){
             count++;
             ds18b20_data_to_json(items, &min);
             next = next_hour(next);
-            min.date_time = 0;
+            memset(&min, 0x00, sizeof(ds18b20_data_t));
+        }
+    }while( !feof(f) && data.date_time < end);
+    cJSON_AddNumberToObject(root, "size", count);
+    fclose(f);
+    return ret;    
+}
+
+esp_err_t fetch_max_ds18b20(cJSON* root, time_t begin, time_t end){
+    esp_err_t ret = ESP_OK;
+    FILE* f = fopen(DS18B20_FILE_NAME, "rb");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file [%s] for reading", DS18B20_FILE_NAME);
+        return ESP_FAIL;
+    }
+    int count = 0;
+    cJSON *items = cJSON_AddArrayToObject(root, "items");
+    time_t next = next_hour(begin);
+    ds18b20_data_t data, max;
+    memset(&max, 0x00, sizeof(ds18b20_data_t));
+    do{
+        size_t sz = fread(&data, sizeof(ds18b20_data_t), 1, f);
+        if(sz != sizeof(ds18b20_data_t) && ferror(f)){
+            ESP_LOGE(TAG, "Error reading to file %s", DS18B20_FILE_NAME);
+            ret = ESP_FAIL;
+            break; 
+        }
+        if( max.date_time == 0 || max.temperature < data.temperature){
+            memcpy(&max, &data, sizeof(ds18b20_data_t));
+            ESP_LOGE(TAG, "MIN: %f", max.temperature);
+        }
+        if( data.date_time >= next || feof(f) || data.date_time >= end ){
+            count++;
+            ds18b20_data_to_json(items, &max);
+            next = next_hour(next);
+            memset(&max, 0x00, sizeof(ds18b20_data_t));
         }
     }while( !feof(f) && data.date_time < end);
     cJSON_AddNumberToObject(root, "size", count);
