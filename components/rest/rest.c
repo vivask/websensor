@@ -109,7 +109,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 10;
+    config.max_uri_handlers = 21;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
     ESP_LOGI(TAG, "Starting HTTP Server");
@@ -187,14 +187,113 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &ds18b20_data_get_avg_uri);
 
-    /* URI handler for fetching bmx280 all measurements */
-    httpd_uri_t bmx280_data_get_all_uri = {
-        .uri = "/api/v1/bmx280/read/all",
+    /* URI handler for fetching bmx280 all temperature measurements */
+    httpd_uri_t bmx280_data_get_temperature_all_uri = {
+        .uri = "/api/v1/bmx280/read/temperature/all",
         .method = HTTP_GET,
         .handler = bmx280_data_get_all_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &bmx280_data_get_all_uri);
+    httpd_register_uri_handler(server, &bmx280_data_get_temperature_all_uri);
+
+    /* URI handler for fetching bmx280 min temperature measurements */
+    httpd_uri_t bmx280_data_get_temperature_min_uri = {
+        .uri = "/api/v1/bmx280/read/temperature/min",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_temperature_min_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_temperature_min_uri);
+
+    /* URI handler for fetching bmx280 max temperature measurements */
+    httpd_uri_t bmx280_data_get_temperature_max_uri = {
+        .uri = "/api/v1/bmx280/read/temperature/max",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_temperature_max_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_temperature_max_uri);
+
+    /* URI handler for fetching bmx280 avg temperature measurements */
+    httpd_uri_t bmx280_data_get_temperature_avg_uri = {
+        .uri = "/api/v1/bmx280/read/temperature/avg",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_temperature_avg_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_temperature_avg_uri);
+
+    /* URI handler for fetching bmx280 all humidity measurements */
+    httpd_uri_t bmx280_data_get_humidity_all_uri = {
+        .uri = "/api/v1/bmx280/read/humidity/all",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_all_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_humidity_all_uri);
+
+    /* URI handler for fetching bmx280 min humidity measurements */
+    httpd_uri_t bmx280_data_get_humidity_min_uri = {
+        .uri = "/api/v1/bmx280/read/humidity/min",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_humidity_min_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_humidity_min_uri);
+
+    /* URI handler for fetching bmx280 max humidity measurements */
+    httpd_uri_t bmx280_data_get_humidity_max_uri = {
+        .uri = "/api/v1/bmx280/read/humidity/max",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_humidity_max_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_humidity_max_uri);
+
+    /* URI handler for fetching bmx280 avg humidity measurements */
+    httpd_uri_t bmx280_data_get_humidity_avg_uri = {
+        .uri = "/api/v1/bmx280/read/humidity/avg",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_humidity_avg_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_humidity_avg_uri);
+
+    /* URI handler for fetching bmx280 all pressure measurements */
+    httpd_uri_t bmx280_data_get_pressure_all_uri = {
+        .uri = "/api/v1/bmx280/read/pressure/all",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_all_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_pressure_all_uri);
+
+    /* URI handler for fetching bmx280 min pressure measurements */
+    httpd_uri_t bmx280_data_get_pressure_min_uri = {
+        .uri = "/api/v1/bmx280/read/pressure/min",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_pressure_min_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_pressure_min_uri);
+
+    /* URI handler for fetching bmx280 max pressure measurements */
+    httpd_uri_t bmx280_data_get_pressure_max_uri = {
+        .uri = "/api/v1/bmx280/read/pressure/max",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_pressure_max_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_pressure_max_uri);
+
+    /* URI handler for fetching bmx280 avg pressure measurements */
+    httpd_uri_t bmx280_data_get_pressure_avg_uri = {
+        .uri = "/api/v1/bmx280/read/pressure/avg",
+        .method = HTTP_GET,
+        .handler = bmx280_data_get_pressure_avg_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &bmx280_data_get_pressure_avg_uri);
 
     /* URI handler for getting web server files */
     httpd_uri_t common_get_uri = {

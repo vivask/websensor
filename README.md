@@ -78,6 +78,5 @@ vue create web
 Select Vue 2
 cd web
 vue add vuetify  
-npm install --save vue-router
 npm install --save axios
 npm remove @vue/cli-plugin-eslint

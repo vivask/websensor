@@ -293,3 +293,157 @@ esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
     cJSON_Delete(root);
     return ESP_OK;
 }
+
+esp_err_t bmx280_data_get_temperature_min_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_temperature_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_temperature_max_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_max_temperature_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_temperature_avg_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_avg_temperature_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_humidity_min_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_humidity_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_humidity_max_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_max_humidity_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_humidity_avg_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_avg_humidity_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_pressure_min_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_pressure_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_pressure_max_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_max_pressure_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t bmx280_data_get_pressure_avg_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_avg_pressure_bmx280(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+

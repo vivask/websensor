@@ -5,9 +5,38 @@
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-app-bar-title>Websensor</v-app-bar-title>
         <v-spacer></v-spacer>
-        <v-btn icon v-if="rightMenuVisible" @click="showChart()">
-          <v-icon>mdi-chart-line</v-icon>
-        </v-btn>
+        <v-menu
+          v-if="bmx280Visible"
+          left
+          bottom
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              icon
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon>mdi-water-percent</v-icon>
+            </v-btn>
+          </template>
+          
+          <template>
+            <v-container
+              class="pl-5 mt-10"
+              fluid
+            >
+              <v-radio-group v-model="radioGroupBmx280">
+                <v-radio
+                  v-for="(option, index) in bmx280_options"
+                  :key="index"
+                  :label="`${option.title}`"
+                  :value="index"
+                  @click="menuBmx280RadioClick()"
+                ></v-radio>
+              </v-radio-group>
+            </v-container>
+          </template>
+        </v-menu>                
         <v-menu
           v-if="rightMenuVisible"
           left
@@ -42,7 +71,7 @@
         </v-menu>        
     </v-app-bar>
 
-      <v-navigation-drawer v-model="drawer" fixed app clipped>
+    <v-navigation-drawer v-model="drawer" fixed app clipped>
         <v-divider></v-divider>
 
         <v-list
@@ -63,7 +92,8 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
-      </v-navigation-drawer>
+    </v-navigation-drawer>
+
     <v-main>
       <v-container fluid fill-height>
         <template>
@@ -124,6 +154,7 @@
             </v-layout>
           </v-container>
         </template>
+
         <template>
           <v-container v-if="ds18b20Visible">
             <v-layout text-xs-center wrap>
@@ -142,6 +173,7 @@
             </v-layout>
           </v-container>
         </template>
+
         <template>
           <v-container v-if="bmx280Visible">
             <v-layout text-xs-center wrap>
@@ -170,7 +202,7 @@
 </template>
 
 <script>
-import router from './router';
+//import router from './router';
 
 export default {
   name: "App",
@@ -188,9 +220,15 @@ export default {
         { title: 'Minimum'},
         { title: 'Maximum'},
       ],
+      bmx280_options: [
+        { title: 'Temperature'},
+        { title: 'Humidity'},
+        { title: 'Pressure'},
+      ],
       drawer: true,
       miniVariant: false,
       radioGroup: 0,
+      radioGroupBmx280: 0,
       menuIndex: 0,
       sys_date: '2022-08-24', 
       sys_time: '10:00:00', 
@@ -225,8 +263,8 @@ export default {
           value: 'date_time',
         },
         { text: 'Temperature (°C)', value: 'temperature' },
-        { text: 'Pressure (kPa)', value: 'pressure' },
         { text: 'Humidity (%)', value: 'humidity' },
+        { text: 'Pressure (kPa)', value: 'pressure' },
       ],
       bmx280Items: [],
     };
@@ -309,7 +347,7 @@ export default {
         });      
     },
     loadBmx280: function(){
-      const uri = "/api/v1/bmx280/read/" + this.getFilter();
+      const uri = "/api/v1/bmx280/read/" + this.getBmx280Option() + "/" + this.getFilter();
       console.log(uri);
       this.$ajax
         .get(uri)
@@ -326,9 +364,11 @@ export default {
       const routeName = this.items[index].name;
       this.router(routeName);
     },
-    showChart(){
-    },
     menuRadioClick(){
+      const routeName = this.items[this.menuIndex].name;
+      this.router(routeName);
+    },
+    menuBmx280RadioClick(){
       const routeName = this.items[this.menuIndex].name;
       this.router(routeName);
     },
@@ -343,7 +383,17 @@ export default {
         case 3:
           return 'max';
       }
-    },        
+    },
+    getBmx280Option(){
+      switch(this.radioGroupBmx280){
+        case 0:
+          return 'temperature';
+        case 1:
+          return 'humidity';
+        case 2:
+          return 'pressure';
+      }
+    },     
     save_hwclock: function() {
       this.$ajax
         .post("/api/v1/settings/hwclock", {
