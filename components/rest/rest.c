@@ -173,10 +173,19 @@ esp_err_t start_rest_server(const char *base_path)
     httpd_uri_t ds18b20_data_get_max_uri = {
         .uri = "/api/v1/ds18b20/read/max",
         .method = HTTP_GET,
-        .handler = ds18b20_data_get_min_handler,
+        .handler = ds18b20_data_get_max_handler,
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &ds18b20_data_get_max_uri);
+
+    /* URI handler for fetching ds18b20 avg measurements */
+    httpd_uri_t ds18b20_data_get_avg_uri = {
+        .uri = "/api/v1/ds18b20/read/avg",
+        .method = HTTP_GET,
+        .handler = ds18b20_data_get_avg_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &ds18b20_data_get_avg_uri);
 
     /* URI handler for fetching bmx280 all measurements */
     httpd_uri_t bmx280_data_get_all_uri = {

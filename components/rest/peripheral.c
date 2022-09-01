@@ -58,6 +58,7 @@ void peripheral_initialize(){
         ESP_LOGI(TAG, "%s initialisation success", bme280p ? "BME280" : "BMP280");
         bmp280_initialized = true;
     }
+    remove_all_data();
 }
 
 static void pool_ds18b20() {
