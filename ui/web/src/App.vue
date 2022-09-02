@@ -96,116 +96,28 @@
 
     <v-main>
       <v-container fluid fill-height>
+        
         <template>
           <v-container v-if="settingsVisible">
-            <v-layout text-xs-center wrap>
-              <v-flex xs12 sm6 offset-sm3>
-                <v-card>
-                  <v-card-text>
-                    <v-container fluid grid-list-lg>
-                      <v-layout row wrap>
-                        <v-flex xs7>
-                          <v-subheader class="mt-1">System date</v-subheader>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="sys_date" class="mt-0" type="date"></v-text-field>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="sys_time" class="mt-0" type="time" step="2"></v-text-field>
-                        </v-flex>
-                        <v-flex xs1>
-                          <v-btn fab dark small v-bind:color="sys_set===false ? 'red accent-4' : 'green accent-4'" class="mt-3" @click="save_hwclock">
-                            <v-icon dark>mdi-check</v-icon>
-                          </v-btn>                 
-                        </v-flex>
-                        <v-flex xs7>
-                          <v-subheader class="mt-1">Begin loging</v-subheader>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="begin_date" class="mt-0" type="date"></v-text-field>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="begin_time" class="mt-0" type="time" step="2"></v-text-field>
-                        </v-flex>
-                        <v-flex xs1>
-                          <v-btn fab dark small v-bind:color="begin_set===false ? 'red accent-4' : 'green accent-4'" class="mt-3" @click="save_begin">
-                            <v-icon dark>mdi-check</v-icon>
-                          </v-btn>                 
-                        </v-flex>
-                        <v-flex xs7>
-                          <v-subheader class="mt-1">End loging</v-subheader>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="end_date" class="mt-0" type="date"></v-text-field>
-                        </v-flex>
-                        <v-flex xs2>
-                          <v-text-field v-model="end_time" class="mt-0" type="time" step="2"></v-text-field>
-                        </v-flex>
-                        <v-flex xs1>
-                          <v-btn fab dark small v-bind:color="end_set===false ? 'red accent-4' : 'green accent-4'" class="mt-3" @click="save_end">
-                            <v-icon dark>mdi-check</v-icon>
-                          </v-btn>                 
-                        </v-flex>
-                      </v-layout>
-                    </v-container>
-                  </v-card-text>
-                </v-card>
-              </v-flex>
-            </v-layout>
+            <Settings ref="SettingsRef"></Settings>
           </v-container>
         </template>
 
         <template>
           <v-container v-if="ds18b20Visible">
-            <v-layout text-xs-center wrap>
-              <v-flex xs12 sm6 offset-sm3>
-                <v-card>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="ds18b20Headers"
-                      :items="ds18b20Items"
-                      :items-per-page="ds18b20ItemsPerPage"
-                      :footer-props="ds18b20Footer"
-                      class="elevation-1"
-                    >
-                      <template v-slot:item.temperature="{ item }">
-                        <span>{{ parseFloat(item.temperature).toFixed(1) }}</span>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-flex>
-            </v-layout>
+            <Ds18b20 ref="Ds18b20Ref"></Ds18b20>
           </v-container>
         </template>
 
         <template>
           <v-container v-if="bmx280Visible">
-            <v-layout text-xs-center wrap>
-              <v-flex xs12 sm6 offset-sm3>
-                <v-card>
-                  <v-card-text>
-                    <v-data-table
-                      :headers="bmx280Headers"
-                      :items="bmx280Items"
-                      :items-per-page="10"                      
-                      :footer-props="bmx280Footer"
-                      class="elevation-1"
-                    >
-                      <template v-slot:item.temperature="{ item }">
-                        <span>{{ parseFloat(item.temperature).toFixed(1) }}</span>
-                      </template>
-                      <template v-slot:item.humidity="{ item }">
-                        <span>{{ parseFloat(item.humidity).toFixed(1) }}</span>
-                      </template>
-                      <template v-slot:item.pressure="{ item }">
-                        <span>{{ parseFloat(item.pressure*133.322).toFixed(1) }}</span>
-                      </template>
-                    </v-data-table>
-                  </v-card-text>
-                </v-card>
-              </v-flex>
-            </v-layout>
+            <Bmx280 ref="Bmx280Ref"></Bmx280>
+          </v-container>
+        </template>
+
+        <template>
+          <v-container v-if="wait">
+            <Wait/>
           </v-container>
         </template>
 
@@ -220,8 +132,19 @@
 
 <script>
 
+import Wait from './components/Wait.vue';
+import Settings from  './components/Settings.vue';
+import Ds18b20 from './components/Ds18b20.vue';
+import Bmx280 from './components/Bmx280.vue';
+
 export default {
   name: "App",
+  components: {
+    Wait,
+    Settings,
+    Ds18b20,
+    Bmx280,
+},
   data() {
     return {
       menu: null,
@@ -231,10 +154,10 @@ export default {
 //        { title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' }
       ],
       options: [
-        { title: 'All'},
         { title: 'Average'},
         { title: 'Minimum'},
         { title: 'Maximum'},
+        { title: 'All'},
       ],
       bmx280_options: [
         { title: 'Temperature'},
@@ -246,47 +169,16 @@ export default {
       radioGroup: 0,
       radioGroupBmx280: 0,
       menuIndex: 0,
-      sys_date: '2022-08-24', 
-      sys_time: '10:00:00', 
-      begin_date: '2022-08-24', 
-      begin_time: '10:00:01', 
-      end_date: '2022-08-24', 
-      end_time: '10:20:00',
-      sys_set: false,
-      begin_set: false,
-      end_set: false,
       rightMenuVisible: false,
       settingsVisible: true,
+      settingsMounted: false,
       ds18b20Visible: false,
+      ds18b20Mounted: false,
       bmx280Visible: false,
+      bmx280Mounted: false,
       begin_idx: 0,
       end_idx: 50,
-      ds18b20Headers: [
-        {
-          text: 'Date',
-          align: 'start',
-          sortable: false,
-          value: 'date_time',
-        },
-        { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
-      ],
-      ds18b20Items: [],
-      ds18b20ItemsPerPage: 10,
-      ds18b20Footer: {'items-per-page-options': [10, 50, 100, -1]},
-      bmx280Headers: [
-        {
-          text: 'Date',
-          align: 'start',
-          sortable: false,
-          value: 'date_time',
-        },
-        { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
-        { text: 'Humidity (%)', value: 'humidity' , formatter: this.floatFormat},
-        { text: 'Pressure (mmHg)', value: 'pressure' , formatter: this.pressureFormat},
-      ],
-      bmx280Items: [],
-      bmx280Footer: {'items-per-page-options': [10, 50, 100]},
-      itemsBuffer: [],
+      wait: false,
     };
   },
   mounted() {
@@ -299,137 +191,90 @@ export default {
         if(response.data.bmx280_available){
           this.items.push({ title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' });
         }
-        this.refreshSettingsButtons(response);
+        this.settingsMounted = true;
       })
       .catch(error => {
         console.log(error);
       });
   },
   methods: {
-    router(routeName){
-      console.log(routeName);
-      if(routeName === 'settings'){
+    router: function(route){
+      //this.wait = true;
+      if(route === 'settings'){
+        console.log(route);
         this.ds18b20Visible = false;
         this.bmx280Visible = false;
         this.rightMenuVisible = false;
-        this.loadSettings();
         this.settingsVisible = true;
+        if(this.settingsMounted){
+          this.$refs.SettingsRef.load_data();
+        }else{
+          this.settingsMounted = true;  
+        }
+        this.ds18b20Mounted = false;
+        this.bmx280Mounted = false;
+        this.wait = false;
         return;
       }
-      if(routeName === 'ds18b20'){
+      if(route === 'ds18b20'){
+        console.log(route);
         this.settingsVisible = false;
         this.bmx280Visible = false;
         this.rightMenuVisible = true;
-        this.loadDs18b20();
         this.ds18b20Visible = true;
+        if(this.ds18b20Mounted){
+          this.$refs.Ds18b20Ref.load_data(this.get_filter());
+        }else{
+          this.ds18b20Mounted = true;
+        }
+        this.settingsMounted = false;
+        this.bmx280Mounted = false; 
+        this.wait = false;
         return;
       }
-      if(routeName === 'bmx280'){
+      if(route === 'bmx280'){
+        console.log(route);
         this.settingsVisible = false;
         this.ds18b20Visible = false;
         this.rightMenuVisible = true;
-        this.loadBmx280();
         this.bmx280Visible = true;
+        if(this.bmx280Mounted){
+          this.$refs.Bmx280Ref.load_data(this.get_filter(), this.get_bmx280_option());
+        }else{
+          this.bmx280Mounted = true;
+        }
+        this.settingsMounted = false;
+        this.ds18b20Mounted = false;
+        this.wait = false;
         return;
       }
     },
-    refreshSettingsButtons(response){
-        this.sys_date = response.data.sys_date;
-        this.sys_time = response.data.sys_time;
-        this.begin_date = response.data.begin_date;
-        this.begin_time = response.data.begin_time;
-        this.end_date = response.data.end_date;
-        this.end_time = response.data.end_time;
-        this.sys_set = !(this.sys_date==="" && this.sys_time==="");
-        this.begin_set =  !(this.begin_date==="" && this.begin_time==="");
-        this.end_set =  !(this.end_date==="" && this.end_time==="");
-    },
-    loadSettings: function(){
-      this.$ajax
-      .get("/api/v1/settings/info")
-      .then(response => {
-        this.refreshSettingsButtons(response);
-      })
-      .catch(error => {
-        console.log(error);
-      });
-    },
-    loadDs18b20: function() {
-      const filter = this.getFilter();
-      var uri = "/api/v1/ds18b20/read/" + filter;
-      if(filter == 'all'){
-        //"count items on page:page num"
-        uri = uri + "/100:1";
-      }
-      console.log(uri);
-      this.$ajax
-        .get(uri)
-        .then(response => {
-          if(filter != 'all'){
-            this.ds18b20Items = response.data.items;
-          }else{
-            this.ds18b20Items = response.data.items;
-            const pages = response.data.pages;
-            for(var i=2; i<=pages; i++){
-              uri = "/api/v1/ds18b20/read/" + filter + "/100:" + i;
-              this.$ajax
-                .get(uri)
-                .then(response => {
-                  this.ds18b20Items = this.ds18b20Items.concat(response.data.items);
-                })
-                .catch(error => {
-                  console.log(error);        
-                });
-            }
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });      
-    },
-    loadBmx280: function(){
-      const filter = this.getFilter();
-      const uri = "/api/v1/bmx280/read/" + this.getBmx280Option() + "/" + filter;
-      if(filter == 'all'){
-        //"count items on page:page num"
-        uri = uri + "/10:1"
-      }
-      console.log(uri);
-      this.$ajax
-        .get(uri)
-        .then(response => {
-          this.bmx280Items = response.data.items;
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    },
     menuActionClick(index){
       this.menuIndex = index;
-      const routeName = this.items[index].name;
-      this.router(routeName);
+      const route = this.items[index].name;
+      this.router(route);
     },
     menuRadioClick(){
-      const routeName = this.items[this.menuIndex].name;
-      this.router(routeName);
+      const route = this.items[this.menuIndex].name;
+      this.router(route);
     },
     menuBmx280RadioClick(){
-      const routeName = this.items[this.menuIndex].name;
-      this.router(routeName);
+      const route = this.items[this.menuIndex].name;
+      this.router(route);
     },
-    getFilter(){
+    get_filter(){
       switch(this.radioGroup){
         case 0:
-          return 'all';
-        case 1:
           return 'avg';
-        case 2:
+        case 1:
           return 'min';
-        case 3:
+        case 2:
           return 'max';
+        case 3:
+          return 'all';
       }
     },
-    getBmx280Option(){
+    get_bmx280_option(){
       switch(this.radioGroupBmx280){
         case 0:
           return 'temperature';
@@ -439,51 +284,18 @@ export default {
           return 'pressure';
       }
     },     
-    save_hwclock: function() {
-      this.$ajax
-        .post("/api/v1/settings/hwclock", {
-          date: this.sys_date,
-          time: this.sys_time
-        })
-        .then(data => {
-          this.sys_set = true;
-          console.log(data);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-      loadSettings();
-    },
-    save_begin: function() {
-      this.$ajax
-        .post("/api/v1/settings/begin", {
-          date: this.begin_date,
-          time: this.begin_time,
-        })
-        .then(data => {
-          this.begin_set = true;
-          console.log(data);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-      loadSettings();
-    },
-    save_end: function() {
-      this.$ajax
-        .post("/api/v1/settings/end", {
-          date: this.end_date,
-          time: this.end_time
-        })
-        .then(data => {
-          this.end_set = true;
-          console.log(data);
-        })
-        .catch(error => {
-          console.log(error);
-        });
-      loadSettings();
-    }
-  }
+
+  },
 };
 </script>
+
+<style>
+  #app {
+    font-family: "Avenir", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+  }
+</style>

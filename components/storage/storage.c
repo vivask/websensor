@@ -102,6 +102,24 @@ esp_err_t insert_bmx280(const bmx280_data_t* data){
     return ESP_OK;
 }
 
+static size_t get_ds18b20_pages(int items_on_page){
+    struct stat st;
+    stat(DS18B20_FILE_NAME, &st);
+    float f_pages = st.st_size/sizeof(ds18b20_data_t);
+    int INT = trunc(f_pages/items_on_page);
+    float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
+} 
+
+static size_t get_bmx280_pages(int items_on_page){
+    struct stat st;
+    stat(BMX280_FILE_NAME, &st);
+    float f_pages = st.st_size/sizeof(bmx280_data_t);
+    int INT = trunc(f_pages/items_on_page);
+    float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
+} 
+
 esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params){
     esp_err_t ret = ESP_OK;
     int count = 0, idx=0;
@@ -129,9 +147,7 @@ esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params){
         }while( idx < end && !feof(f) );
         fclose(f);
     }
-    struct stat st;
-    stat(DS18B20_FILE_NAME, &st);
-    size_t pages = st.st_size/sizeof(ds18b20_data_t)/params->items_on_page + 1;
+    size_t pages = get_ds18b20_pages(params->items_on_page);
     cJSON_AddNumberToObject(root, "pages", pages);
     cJSON_AddNumberToObject(root, "size", count);
     return ret;
