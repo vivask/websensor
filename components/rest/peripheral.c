@@ -8,6 +8,7 @@
 #include "i2cdev.h"
 #include "bmp280.h"
 #include "ds18x20.h"
+#include "test.h"
 
 #define I2C_SCL_IO              GPIO_NUM_22               
 #define I2C_SDA_IO              GPIO_NUM_23               
@@ -28,6 +29,14 @@ static TaskHandle_t xTaskPool = NULL;
 
 static time_t tBeginPool = 0;
 static time_t tEndPool = 0;
+
+time_t validate_begin_time(time_t begin);
+time_t validate_end_time(time_t end);
+
+#ifdef CONFIG_WEB_TEST_MODE
+    void test_settings_set(time_t begin, time_t end);
+    void test_settings_get(time_t* begin, time_t* end);
+#endif
 
 void peripheral_initialize(){
     esp_err_t ret;
@@ -58,7 +67,14 @@ void peripheral_initialize(){
         ESP_LOGI(TAG, "%s initialisation success", bme280p ? "BME280" : "BMP280");
         bmp280_initialized = true;
     }
+#ifdef CONFIG_WEB_TEST_MODE
+    time_t begin, end;
+    test_generate_data(750, &begin, &end);
+    test_settings_set(begin, end);
+#else
     remove_all_data();
+#endif
+
 }
 
 static void pool_ds18b20() {
@@ -118,9 +134,11 @@ static void task_pool(void* arg){
 }
 
 void peripheral_start(time_t begin, time_t end){
-    tBeginPool = begin;
-    tEndPool = end;
+    tBeginPool = validate_begin_time(begin);
+    tEndPool = validate_end_time(end);   
+#ifndef CONFIG_WEB_TEST_MODE    
     remove_all_data();
+#endif
     xTaskCreatePinnedToCore(task_pool, "task_pool", configMINIMAL_STACK_SIZE*8, &xTaskPool, 10, NULL, 0);
 }
 

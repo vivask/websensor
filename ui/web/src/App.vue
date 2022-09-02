@@ -166,7 +166,11 @@
                       :items="ds18b20Items"
                       :items-per-page="-1"
                       class="elevation-1"
-                    ></v-data-table>
+                    >
+                      <template v-slot:item.temperature="{ item }">
+                        <span>{{ parseFloat(item.temperature).toFixed(1) }}</span>
+                      </template>
+                    </v-data-table>
                   </v-card-text>
                 </v-card>
               </v-flex>
@@ -185,7 +189,17 @@
                       :items="bmx280Items"
                       :items-per-page="-1"
                       class="elevation-1"
-                    ></v-data-table>
+                    >
+                      <template v-slot:item.temperature="{ item }">
+                        <span>{{ parseFloat(item.temperature).toFixed(1) }}</span>
+                      </template>
+                      <template v-slot:item.humidity="{ item }">
+                        <span>{{ parseFloat(item.humidity).toFixed(1) }}</span>
+                      </template>
+                      <template v-slot:item.pressure="{ item }">
+                        <span>{{ parseFloat(item.pressure*133.322).toFixed(1) }}</span>
+                      </template>
+                    </v-data-table>
                   </v-card-text>
                 </v-card>
               </v-flex>
@@ -202,7 +216,6 @@
 </template>
 
 <script>
-//import router from './router';
 
 export default {
   name: "App",
@@ -252,7 +265,7 @@ export default {
           sortable: false,
           value: 'date_time',
         },
-        { text: 'Temperature (°C)', value: 'temperature' },
+        { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
       ],
       ds18b20Items: [],
       bmx280Headers: [
@@ -262,9 +275,9 @@ export default {
           sortable: false,
           value: 'date_time',
         },
-        { text: 'Temperature (°C)', value: 'temperature' },
-        { text: 'Humidity (%)', value: 'humidity' },
-        { text: 'Pressure (kPa)', value: 'pressure' },
+        { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
+        { text: 'Humidity (%)', value: 'humidity' , formatter: this.floatFormat},
+        { text: 'Pressure (mmHg)', value: 'pressure' , formatter: this.pressureFormat},
       ],
       bmx280Items: [],
     };
@@ -314,7 +327,7 @@ export default {
       }
     },
     refreshSettingsButtons(response){
-        /*this.sys_date = response.data.sys_date;
+        this.sys_date = response.data.sys_date;
         this.sys_time = response.data.sys_time;
         this.begin_date = response.data.begin_date;
         this.begin_time = response.data.begin_time;
@@ -322,7 +335,7 @@ export default {
         this.end_time = response.data.end_time;
         this.sys_set = !(this.sys_date==="" && this.sys_time==="");
         this.begin_set =  !(this.begin_date==="" && this.begin_time==="");
-        this.end_set =  !(this.end_date==="" && this.end_time==="");*/
+        this.end_set =  !(this.end_date==="" && this.end_time==="");
     },
     loadSettings: function(){
       this.$ajax
@@ -340,7 +353,8 @@ export default {
       this.$ajax
         .get(uri)
         .then(response => {
-          this.ds18b20Items = response.data.items;
+          console.log(response);
+          this.ds18b20Items = response.data.items;          
         })
         .catch(error => {
           console.log(error);
@@ -352,7 +366,6 @@ export default {
       this.$ajax
         .get(uri)
         .then(response => {
-          console.log(response);
           this.bmx280Items = response.data.items;
         })
         .catch(error => {
@@ -407,6 +420,7 @@ export default {
         .catch(error => {
           console.log(error);
         });
+      loadSettings();
     },
     save_begin: function() {
       this.$ajax
@@ -421,6 +435,7 @@ export default {
         .catch(error => {
           console.log(error);
         });
+      loadSettings();
     },
     save_end: function() {
       this.$ajax
@@ -435,7 +450,17 @@ export default {
         .catch(error => {
           console.log(error);
         });
+      loadSettings();
     }
+  },
+  floatFormat(value){
+    console.log(value);
+    const ret = fixeFloat(value, 1);
+    console.log(ret);
+    return ret;
+  },
+  pressureFormat(value){
+    return fixeFloat(value/133, 1);
   }
 };
 </script>

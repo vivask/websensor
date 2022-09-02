@@ -27,8 +27,10 @@ typedef struct rest_server_context {
     char scratch[SCRATCH_BUFSIZE];
 } rest_server_context_t;
 
-esp_err_t light_brightness_post_handler(httpd_req_t *req);
-esp_err_t temperature_data_get_handler(httpd_req_t *req);
+#ifdef CONFIG_WEB_TEST_MODE
+    void test_settings_set(time_t begin, time_t end);
+    void test_settings_get(time_t* begin, time_t* end);
+#endif
 
 esp_err_t settings_info_get_handler(httpd_req_t *req);
 esp_err_t settings_hwclock_post_handler(httpd_req_t *req);

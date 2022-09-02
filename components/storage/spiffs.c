@@ -3,6 +3,9 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 #include "spiffs.h"
+#ifdef CONFIG_WEB_TEST_MODE
+#include "test.h"
+#endif
 
 static const char *TAG = "SPIFFS";
 
@@ -48,7 +51,7 @@ esp_err_t init_fs(void)
     } else {
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d, available: %d", total, used, total-used);
     }
-  
+
     return ESP_OK;
 }
 

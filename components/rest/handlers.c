@@ -27,6 +27,19 @@ static bool hwclock_init = false;
 static time_t begin_loging = 0;
 static time_t end_loging = 0;
 
+#ifdef CONFIG_WEB_TEST_MODE
+void test_settings_set(time_t begin, time_t end){
+    hwclock_init = true;
+    begin_loging = begin;
+    end_loging = end;    
+}
+
+void test_settings_get(time_t* begin, time_t* end){
+    *begin = begin_loging;
+    *end = end_loging;
+}
+#endif
+
 static void get_date(char* buf, const time_t time){
     struct tm* t = localtime(&time);  
     sprintf(buf, "20%02d-%02d-%02d", t->tm_year - 100, t->tm_mon + 1, t->tm_mday); 
@@ -147,6 +160,14 @@ esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
     return ESP_OK;    
 }
 
+time_t validate_begin_time(time_t begin){
+    return (hwclock_init && end_loging !=0 && begin > end_loging) ? end_loging-1 : begin;
+}
+
+time_t validate_end_time(time_t end){
+    return (hwclock_init && begin_loging != 0 && end < begin_loging) ? begin_loging+1 : end;
+}
+
 esp_err_t settings_begin_post_handler(httpd_req_t *req){
     esp_err_t ret;
     char* buf = get_request_buffer(req, &ret);
@@ -159,7 +180,7 @@ esp_err_t settings_begin_post_handler(httpd_req_t *req){
     sprintf(date_time, "%s %s", cJSON_GetObjectItem(root, "date")->valuestring, cJSON_GetObjectItem(root, "time")->valuestring);
     cJSON_Delete(root);
 
-    struct tm tm = {0};
+    struct tm tm = {0};   
     strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
     begin_loging = mktime(&tm);
     
@@ -216,7 +237,7 @@ esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -288,6 +309,7 @@ esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);

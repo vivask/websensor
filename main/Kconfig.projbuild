@@ -1,5 +1,10 @@
 menu "Websensor Configuration"
 
+    config WEB_TEST_MODE
+        bool "Debug mode"
+        help
+            Debug mode.
+
     choice WEB_DEPLOY_MODE
         prompt "Website deploy mode"
         default WEB_DEPLOY_SEMIHOST

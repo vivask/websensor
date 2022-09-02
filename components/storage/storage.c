@@ -548,4 +548,3 @@ esp_err_t fetch_max_pressure_bmx280(cJSON* root, time_t begin, time_t end){
 esp_err_t fetch_avg_pressure_bmx280(cJSON* root, time_t begin, time_t end){
     return fetch_avg_bmx280(root, begin, end, PRESSURE);
 }
-
