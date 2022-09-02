@@ -153,7 +153,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching ds18b20 all measurements */
     httpd_uri_t ds18b20_data_get_all_uri = {
-        .uri = "/api/v1/ds18b20/read/all",
+        .uri = "/api/v1/ds18b20/read/all/*",
         .method = HTTP_GET,
         .handler = ds18b20_data_get_all_handler,
         .user_ctx = rest_context
@@ -189,7 +189,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching bmx280 all temperature measurements */
     httpd_uri_t bmx280_data_get_temperature_all_uri = {
-        .uri = "/api/v1/bmx280/read/temperature/all",
+        .uri = "/api/v1/bmx280/read/temperature/all/*",
         .method = HTTP_GET,
         .handler = bmx280_data_get_all_handler,
         .user_ctx = rest_context
@@ -225,7 +225,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching bmx280 all humidity measurements */
     httpd_uri_t bmx280_data_get_humidity_all_uri = {
-        .uri = "/api/v1/bmx280/read/humidity/all",
+        .uri = "/api/v1/bmx280/read/humidity/all/*",
         .method = HTTP_GET,
         .handler = bmx280_data_get_all_handler,
         .user_ctx = rest_context
@@ -261,7 +261,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching bmx280 all pressure measurements */
     httpd_uri_t bmx280_data_get_pressure_all_uri = {
-        .uri = "/api/v1/bmx280/read/pressure/all",
+        .uri = "/api/v1/bmx280/read/pressure/all/*",
         .method = HTTP_GET,
         .handler = bmx280_data_get_all_handler,
         .user_ctx = rest_context

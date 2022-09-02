@@ -50,8 +50,44 @@ static void get_time(char* buf, const time_t time){
     sprintf(buf, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
 }
 
+static int split (const char *txt, char delim, char ***tokens)
+{
+    int *tklen, *t, count = 1;
+    char **arr, *p = (char *) txt;
+
+    while (*p != '\0') if (*p++ == delim) count += 1;
+    t = tklen = calloc (count, sizeof (int));
+    for (p = (char *) txt; *p != '\0'; p++) *p == delim ? *t++ : (*t)++;
+    *tokens = arr = malloc (count * sizeof (char *));
+    t = tklen;
+    p = *arr++ = calloc (*(t++) + 1, sizeof (char *));
+    while (*txt != '\0')
+    {
+        if (*txt == delim)
+        {
+            p = *arr++ = calloc (*(t++) + 1, sizeof (char *));
+            txt++;
+        }
+        else *p++ = *txt++;
+    }
+    free (tklen);
+    return count;
+}
+
 static char* get_value_from_uri(httpd_req_t *req, const char* uri){
     return req->uri + strlen(uri) + 1;
+}
+
+static esp_err_t get_select_params(slect_params_t* params, httpd_req_t *req, const char* uri){
+    char* params_str = get_value_from_uri(req, uri);
+    char **tokens;
+    int count = split(params_str, ':', &tokens);
+    if(count != 2){
+        return ESP_FAIL;
+    }
+    params->items_on_page = atoi(tokens[0]);
+    params->page_no = atoi(tokens[1]);
+    return ESP_OK;
 }
 
 static char* get_request_buffer(httpd_req_t *req, esp_err_t* err){
@@ -229,18 +265,25 @@ esp_err_t settings_end_post_handler(httpd_req_t *req){
 esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
     esp_err_t ret;
 
+    slect_params_t params;
+    ret = get_select_params(&params, req, "/api/v1/ds18b20/read/all");
+    if(ret != ESP_OK){
+        return ret;
+    }
+
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
-    ret = fetch_all_ds18b20(root);
+    ret = fetch_all_ds18b20(root, &params);
     if(ret != ESP_OK){
         cJSON_Delete(root);
         return ret;
     }
     const char *json = cJSON_Print(root);
-    //ESP_LOGI(TAG, "JSON: %s", json);
+    ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
+    
     return ESP_OK;
 }
 

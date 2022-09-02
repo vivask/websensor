@@ -164,7 +164,8 @@
                     <v-data-table
                       :headers="ds18b20Headers"
                       :items="ds18b20Items"
-                      :items-per-page="-1"
+                      :items-per-page="ds18b20ItemsPerPage"
+                      :footer-props="ds18b20Footer"
                       class="elevation-1"
                     >
                       <template v-slot:item.temperature="{ item }">
@@ -187,7 +188,8 @@
                     <v-data-table
                       :headers="bmx280Headers"
                       :items="bmx280Items"
-                      :items-per-page="-1"
+                      :items-per-page="10"                      
+                      :footer-props="bmx280Footer"
                       class="elevation-1"
                     >
                       <template v-slot:item.temperature="{ item }">
@@ -206,6 +208,7 @@
             </v-layout>
           </v-container>
         </template>
+
       </v-container>
     </v-main>
     <v-footer color="indigo accent-4" app fixed>
@@ -268,6 +271,8 @@ export default {
         { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
       ],
       ds18b20Items: [],
+      ds18b20ItemsPerPage: 10,
+      ds18b20Footer: {'items-per-page-options': [10, 50, 100, -1]},
       bmx280Headers: [
         {
           text: 'Date',
@@ -280,6 +285,8 @@ export default {
         { text: 'Pressure (mmHg)', value: 'pressure' , formatter: this.pressureFormat},
       ],
       bmx280Items: [],
+      bmx280Footer: {'items-per-page-options': [10, 50, 100]},
+      itemsBuffer: [],
     };
   },
   mounted() {
@@ -348,20 +355,45 @@ export default {
       });
     },
     loadDs18b20: function() {
-      const uri = "/api/v1/ds18b20/read/" + this.getFilter();
+      const filter = this.getFilter();
+      var uri = "/api/v1/ds18b20/read/" + filter;
+      if(filter == 'all'){
+        //"count items on page:page num"
+        uri = uri + "/100:1";
+      }
       console.log(uri);
       this.$ajax
         .get(uri)
         .then(response => {
-          console.log(response);
-          this.ds18b20Items = response.data.items;          
+          if(filter != 'all'){
+            this.ds18b20Items = response.data.items;
+          }else{
+            this.ds18b20Items = response.data.items;
+            const pages = response.data.pages;
+            for(var i=2; i<=pages; i++){
+              uri = "/api/v1/ds18b20/read/" + filter + "/100:" + i;
+              this.$ajax
+                .get(uri)
+                .then(response => {
+                  this.ds18b20Items = this.ds18b20Items.concat(response.data.items);
+                })
+                .catch(error => {
+                  console.log(error);        
+                });
+            }
+          }
         })
         .catch(error => {
           console.log(error);
         });      
     },
     loadBmx280: function(){
-      const uri = "/api/v1/bmx280/read/" + this.getBmx280Option() + "/" + this.getFilter();
+      const filter = this.getFilter();
+      const uri = "/api/v1/bmx280/read/" + this.getBmx280Option() + "/" + filter;
+      if(filter == 'all'){
+        //"count items on page:page num"
+        uri = uri + "/10:1"
+      }
       console.log(uri);
       this.$ajax
         .get(uri)
@@ -452,15 +484,6 @@ export default {
         });
       loadSettings();
     }
-  },
-  floatFormat(value){
-    console.log(value);
-    const ret = fixeFloat(value, 1);
-    console.log(ret);
-    return ret;
-  },
-  pressureFormat(value){
-    return fixeFloat(value/133, 1);
   }
 };
 </script>
