@@ -123,7 +123,7 @@ static size_t get_bmx280_pages(int items_on_page){
 esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params){
     esp_err_t ret = ESP_OK;
     int count = 0, idx=0;
-    int start = (params->page_no==1) ? 0 : (params->page_no-1)*params->items_on_page+1;
+    int start = (params->page_no==1) ? 0 : (params->page_no-1)*params->items_on_page;
     int end = start + params->items_on_page;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
     FILE* f = fopen(DS18B20_FILE_NAME, "rb");
@@ -297,9 +297,11 @@ esp_err_t fetch_avg_ds18b20(cJSON* root, time_t begin, time_t end){
     return ret;    
 }
 
-esp_err_t fetch_all_bmx280(cJSON* root){
+esp_err_t fetch_all_bmx280(cJSON* root, slect_params_t* params){
     esp_err_t ret = ESP_OK;
-    int count = 0;
+    int count = 0, idx=0;
+    int start = (params->page_no==1) ? 0 : (params->page_no-1)*params->items_on_page;
+    int end = start + params->items_on_page;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
     FILE* f = fopen(BMX280_FILE_NAME, "rb");
     if (f == NULL) {
@@ -308,17 +310,22 @@ esp_err_t fetch_all_bmx280(cJSON* root){
         do{
             bmx280_data_t data;
             size_t sz = fread(&data, sizeof(bmx280_data_t), 1, f);
-            if(sz != sizeof(bmx280_data_t) && ferror(f)){
-                ESP_LOGE(TAG, "Error reading to file %s", BMX280_FILE_NAME);
-                ret = ESP_FAIL;
-                break; 
+            if(idx >= start) {           
+                if(sz != sizeof(bmx280_data_t) && ferror(f)){
+                    ESP_LOGE(TAG, "Error reading to file %s", BMX280_FILE_NAME);
+                    ret = ESP_FAIL;
+                    break; 
+                }
+                if( feof(f) ) break;
+                count++;
+                bmx280_data_to_json(items, &data);
             }
-            if( feof(f) ) break;
-            count++;
-            bmx280_data_to_json(items, &data);
-        }while( !feof(f) );
+            idx++;
+        }while( idx < end && !feof(f) );
         fclose(f);
     }
+    size_t pages = get_bmx280_pages(params->items_on_page);
+    cJSON_AddNumberToObject(root, "pages", pages);
     cJSON_AddNumberToObject(root, "size", count);
     return ret;
 }

@@ -48,7 +48,7 @@ esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params);
 esp_err_t fetch_min_ds18b20(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_max_ds18b20(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_avg_ds18b20(cJSON* root, time_t begin, time_t end);
-esp_err_t fetch_all_bmx280(cJSON* root);
+esp_err_t fetch_all_bmx280(cJSON* root, slect_params_t* params);
 esp_err_t fetch_min_temperature_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_max_temperature_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_avg_temperature_bmx280(cJSON* root, time_t begin, time_t end);

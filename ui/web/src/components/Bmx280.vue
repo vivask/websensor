@@ -50,40 +50,58 @@ export default {
         this.load_data();
     },
     methods: {
-        load_data: function() {
-          const filter = this.$store.getters.get_menu_filter;
-          const option = this.$store.getters.get_menu_bmx280;
-          const uri = "/api/v1/bmx280/read/" + option + "/" + filter;
-          if(filter == 'all'){
-              //"count items on page:page num"
-              uri = uri + "/100:1";
-          }
-          console.log('[BMX280] Uri: ',uri);
-          this.$ajax
-              .get(uri)
+      load_data: function(){
+        const filter = this.$store.getters.get_menu_filter;
+        const option = this.$store.getters.get_menu_bmx280;
+        var uri = "/api/v1/bmx280/read/" + option + "/" + filter;
+        if(filter == 'all'){
+          //"count items on page:page num"
+          uri = "/api/v1/bmx280/read/" + filter + "/100:1";
+        }
+        console.log('[BMX280] Uri: ',uri);
+        this.$store.commit('clear_items_array');
+        this.$ajax
+          .get(uri)
+          .then(response => {
+            this.$store.commit('update_items_array', response.data.items);
+            if(filter != 'all'){
+              this.bmx280Items = this.$store.getters.get_items_array;  
+            }else{
+              const pages = response.data.pages;
+              this.get_next_page(2, pages)
               .then(response => {
-                if(filter != 'all'){
-                    this.bmx280Headers = response.data.items;
-                }else{
-                    this.bmx280Headers = response.data.items;
-                    const pages = response.data.pages;
-                    for(var i=2; i<=pages; i++){
-                      uri = "/api/v1/bmx280/read/" + option + "/" + filter + "/100:" + i;
-                      this.$ajax
-                          .get(uri)
-                          .then(response => {
-                            this.bmx280Headers = this.bmx280Headers.concat(response.data.items);
-                          })
-                          .catch(error => {
-                            console.log(error);        
-                          });
-                        }
-                }
+                this.bmx280Items = this.$store.getters.get_items_array;
               })
               .catch(error => {
                 console.log(error);
-              });      
-        },
-    },  
+              });
+            }
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      },
+      get_next_page(page, pages){
+        if(page <= pages){
+          const filter = this.$store.getters.get_menu_filter;
+          const uri = "/api/v1/bmx280/read/" + filter + "/100:" + page;
+          console.log('[BMX280] ', page, '/', pages, ' Uri: ', uri);
+          return this.$ajax
+            .get(uri)
+            .then(response => {
+              this.$store.commit('update_items_array', response.data.items);
+              page++;
+              if(page <= pages){
+                return this.get_next_page(page, pages);
+              }
+            })
+            .catch(error => {
+              return error;
+            });
+        }else{
+          return Promise.reject(new Error(page + ' is larger then ' + pages));
+        }
+      }
+    },
 }  
 </script>

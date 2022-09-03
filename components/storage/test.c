@@ -45,27 +45,27 @@ esp_err_t test_generate_data(int count, time_t* begin, time_t* end){
     time_t t = time(0);
     struct tm* tm = localtime(&t);  
     *begin = mktime(tm);
-    ds18b20_data_t ds18b20 = {0};
-    //bmx280_data_t bmx280 = {0};
+    //ds18b20_data_t ds18b20 = {0};
+    bmx280_data_t bmx280 = {0};
     uint32_t random;
     for(int i=0; i<count; i++){
         t = mktime(tm);
-        ds18b20.date_time = t;
-        //bmx280.date_time = t;
+        //ds18b20.date_time = t;
+        bmx280.date_time = t;
         getrandom(&random, sizeof(uint32_t), 0);
-        ds18b20.temperature = random/10000000;
-        //bmx280.temperature = ds18b20.temperature;
-        //bmx280.humidity = random/10000000/100*(99-1)+1;
-        //bmx280.pressure = random/1000000*0.83;
-        esp_err_t ret = insert_ds18b20(&ds18b20);
+        //ds18b20.temperature = random/10000000;
+        bmx280.temperature = random/10000000;
+        bmx280.humidity = random/10000000/100*(99-1)+1;
+        bmx280.pressure = random/1000000*0.83;
+        /*esp_err_t ret = insert_ds18b20(&ds18b20);
+        if(ret != ESP_OK){
+            return ret;
+        }*/
+        esp_err_t ret = insert_bmx280(&bmx280);
         if(ret != ESP_OK){
             return ret;
         }
         ESP_LOGI(TAG, "Count: %d", i);
-        /*ret = insert_bmx280(&bmx280);
-        if(ret != ESP_OK){
-            return ret;
-        }*/
         tm->tm_sec += 5;
     }
     *end = t;

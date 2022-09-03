@@ -69,7 +69,7 @@ void peripheral_initialize(){
     }
 #ifdef CONFIG_WEB_TEST_MODE
     time_t begin, end;
-    test_generate_data(750, &begin, &end);
+    test_generate_data(250, &begin, &end);
     test_settings_set(begin, end);
 #else
     remove_all_data();

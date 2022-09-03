@@ -187,14 +187,14 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &ds18b20_data_get_avg_uri);
 
-    /* URI handler for fetching bmx280 all temperature measurements */
-    httpd_uri_t bmx280_data_get_temperature_all_uri = {
-        .uri = "/api/v1/bmx280/read/temperature/all/*",
+    /* URI handler for fetching bmx280 all measurements */
+    httpd_uri_t bmx280_data_get_all_uri = {
+        .uri = "/api/v1/bmx280/read/all/*",
         .method = HTTP_GET,
         .handler = bmx280_data_get_all_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &bmx280_data_get_temperature_all_uri);
+    httpd_register_uri_handler(server, &bmx280_data_get_all_uri);
 
     /* URI handler for fetching bmx280 min temperature measurements */
     httpd_uri_t bmx280_data_get_temperature_min_uri = {
@@ -223,15 +223,6 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &bmx280_data_get_temperature_avg_uri);
 
-    /* URI handler for fetching bmx280 all humidity measurements */
-    httpd_uri_t bmx280_data_get_humidity_all_uri = {
-        .uri = "/api/v1/bmx280/read/humidity/all/*",
-        .method = HTTP_GET,
-        .handler = bmx280_data_get_all_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &bmx280_data_get_humidity_all_uri);
-
     /* URI handler for fetching bmx280 min humidity measurements */
     httpd_uri_t bmx280_data_get_humidity_min_uri = {
         .uri = "/api/v1/bmx280/read/humidity/min",
@@ -258,15 +249,6 @@ esp_err_t start_rest_server(const char *base_path)
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &bmx280_data_get_humidity_avg_uri);
-
-    /* URI handler for fetching bmx280 all pressure measurements */
-    httpd_uri_t bmx280_data_get_pressure_all_uri = {
-        .uri = "/api/v1/bmx280/read/pressure/all/*",
-        .method = HTTP_GET,
-        .handler = bmx280_data_get_all_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &bmx280_data_get_pressure_all_uri);
 
     /* URI handler for fetching bmx280 min pressure measurements */
     httpd_uri_t bmx280_data_get_pressure_min_uri = {

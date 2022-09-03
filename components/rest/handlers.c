@@ -344,9 +344,15 @@ esp_err_t ds18b20_data_get_avg_handler(httpd_req_t *req){
 esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
     esp_err_t ret;
 
+    slect_params_t params;
+    ret = get_select_params(&params, req, "/api/v1/bmx280/read/all");
+    if(ret != ESP_OK){
+        return ret;
+    }
+
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
-    ret = fetch_all_bmx280(root);
+    ret = fetch_all_bmx280(root, &params);
     if(ret != ESP_OK){
         cJSON_Delete(root);
         return ret;
