@@ -47,24 +47,42 @@ export default {
         }
     },
     mounted() {
-        this.load_data(this.$menu_filter, $menu_bmx280);
+        this.load_data();
     },
     methods: {
-        lload_data: function(filter, option){
+        load_data: function() {
+          const filter = this.$store.getters.get_menu_filter;
+          const option = this.$store.getters.get_menu_bmx280;
           const uri = "/api/v1/bmx280/read/" + option + "/" + filter;
           if(filter == 'all'){
               //"count items on page:page num"
-              uri = uri + "/10:1"
+              uri = uri + "/100:1";
           }
-          console.log(uri);
+          console.log('[BMX280] Uri: ',uri);
           this.$ajax
               .get(uri)
               .then(response => {
-                this.bmx280Items = response.data.items;
+                if(filter != 'all'){
+                    this.bmx280Headers = response.data.items;
+                }else{
+                    this.bmx280Headers = response.data.items;
+                    const pages = response.data.pages;
+                    for(var i=2; i<=pages; i++){
+                      uri = "/api/v1/bmx280/read/" + option + "/" + filter + "/100:" + i;
+                      this.$ajax
+                          .get(uri)
+                          .then(response => {
+                            this.bmx280Headers = this.bmx280Headers.concat(response.data.items);
+                          })
+                          .catch(error => {
+                            console.log(error);        
+                          });
+                        }
+                }
               })
               .catch(error => {
                 console.log(error);
-              });
+              });      
         },
     },  
 }  

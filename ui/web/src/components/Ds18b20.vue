@@ -39,10 +39,11 @@ export default {
         }
     },
     mounted() {
-        this.load_data(this.$menu_filter);
+        this.load_data();
     },
     methods: {
-        load_data: function(filter) {
+        load_data: function() {
+            const filter = this.$store.getters.get_menu_filter;
             var uri = "/api/v1/ds18b20/read/" + filter;
             if(filter == 'all'){
                 //"count items on page:page num"
@@ -74,6 +75,6 @@ export default {
                 console.log(error);
                 });      
         },
-    }      
+    },
 }  
 </script>

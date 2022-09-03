@@ -169,8 +169,6 @@ export default {
       radioGroup: 0,
       radioGroupBmx280: 0,
       menuIndex: 0,
-      menuFilter: this.$menu_filter,
-      menuBmx280Option: this.$menu_bmx280,
       rightMenuVisible: false,
       settingsVisible: true,
       ds18b20Visible: false,
@@ -214,7 +212,7 @@ export default {
         this.bmx280Visible = false;
         this.rightMenuVisible = true;
         if(this.ds18b20Visible){
-          this.$refs.Ds18b20Ref.load_data(this.menuFilter);
+          this.$refs.Ds18b20Ref.load_data();
         }
         this.ds18b20Visible = true;
         return;
@@ -224,24 +222,24 @@ export default {
         this.ds18b20Visible = false;
         this.rightMenuVisible = true;
         if(this.bmx280Visible){
-          this.$refs.Bmx280Ref.load_data(this.menuFilter, this.menuBmx280Option);
+          this.$refs.Bmx280Ref.load_data();
         }
         this.bmx280Visible = true;
         return;
       }
     },
     menu_action_click: function(index){
-      this.menuIndex = index;
+      this.menuIndex = index;      
       const route = this.items[index].name;
       this.router(route);
     },
     menu_radio_click: function(index){
-      this.menuFilter = this.options[index].name;
+      this.$store.commit('update_menu_filter', this.options[index].name);
       const route = this.items[this.menuIndex].name;
       this.router(route);
     },
     menu_bmx280_radio_click: function(index){
-      this.menuBmx280Option =  this.bmx280_options[index].name;
+      this.$store.commit('update_menu_bmx280', this.bmx280_options[index].name);
       const route = this.items[this.menuIndex].name;
       this.router(route);
     },

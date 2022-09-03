@@ -78,5 +78,6 @@ vue create web
 Select Vue 2
 cd web
 vue add vuetify  
-npm install --save axios numeral
+vue add vuex
+npm install --save axios numeral vuex
 npm remove @vue/cli-plugin-eslint
