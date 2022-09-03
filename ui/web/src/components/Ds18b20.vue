@@ -39,7 +39,7 @@ export default {
         }
     },
     mounted() {
-        this.load_data('avg');
+        this.load_data(this.$menu_filter);
     },
     methods: {
         load_data: function(filter) {
@@ -48,7 +48,7 @@ export default {
                 //"count items on page:page num"
                 uri = uri + "/100:1";
             }
-            console.log(uri);
+            console.log('[DS18B20] Uri: ',uri);
             this.$ajax
                 .get(uri)
                 .then(response => {

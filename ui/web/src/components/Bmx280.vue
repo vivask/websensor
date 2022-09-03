@@ -42,29 +42,29 @@ export default {
                 { text: 'Pressure (mmHg)', value: 'pressure' , formatter: this.pressureFormat},
             ],
             bmx280Items: [],
-            bmx280Footer: {'items-per-page-options': [10, 50, 100]},
+            bmx280Footer: {'items-per-page-options': [10, 50, 100, -1]},
     
         }
     },
     mounted() {
-        this.load_data('avg', 'temperature');
+        this.load_data(this.$menu_filter, $menu_bmx280);
     },
     methods: {
         lload_data: function(filter, option){
-            const uri = "/api/v1/bmx280/read/" + option + "/" + filter;
-            if(filter == 'all'){
-                //"count items on page:page num"
-                uri = uri + "/10:1"
-            }
-            console.log(uri);
-            this.$ajax
-                .get(uri)
-                .then(response => {
+          const uri = "/api/v1/bmx280/read/" + option + "/" + filter;
+          if(filter == 'all'){
+              //"count items on page:page num"
+              uri = uri + "/10:1"
+          }
+          console.log(uri);
+          this.$ajax
+              .get(uri)
+              .then(response => {
                 this.bmx280Items = response.data.items;
-                })
-                .catch(error => {
+              })
+              .catch(error => {
                 console.log(error);
-                });
+              });
         },
     },  
 }  

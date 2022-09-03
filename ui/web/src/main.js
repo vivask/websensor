@@ -6,6 +6,9 @@ import axios from 'axios'
 Vue.config.productionTip = false
 
 Vue.prototype.$ajax = axios
+Vue.prototype.$menu_filter = 'avg'
+Vue.prototype.$menu_bmx280 = 'temperature'
+
 
 new Vue({
   vuetify,

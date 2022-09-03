@@ -27,11 +27,11 @@
             >
               <v-radio-group v-model="radioGroupBmx280">
                 <v-radio
-                  v-for="(option, index) in bmx280_options"
+                  v-for="(item, index) in bmx280_options"
                   :key="index"
-                  :label="`${option.title}`"
+                  :label="`${item.title}`"
                   :value="index"
-                  @click="menuBmx280RadioClick()"
+                  @click="menu_bmx280_radio_click(index)"
                 ></v-radio>
               </v-radio-group>
             </v-container>
@@ -59,11 +59,11 @@
             >
               <v-radio-group v-model="radioGroup">
                 <v-radio
-                  v-for="(option, index) in options"
+                  v-for="(item, index) in options"
                   :key="index"
-                  :label="`${option.title}`"
+                  :label="`${item.title}`"
                   :value="index"
-                  @click="menuRadioClick()"
+                  @click="menu_radio_click(index)"
                 ></v-radio>
               </v-radio-group>
             </v-container>
@@ -81,7 +81,7 @@
           <v-list-item
             v-for="(item, index) in items"
             :key="index"
-            @click="menuActionClick(index)"
+            @click="menu_action_click(index)"
           >
             <v-list-item-icon>
               <v-icon>{{ item.icon }}</v-icon>
@@ -154,28 +154,27 @@ export default {
 //        { title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' }
       ],
       options: [
-        { title: 'Average'},
-        { title: 'Minimum'},
-        { title: 'Maximum'},
-        { title: 'All'},
+        { title: 'Average', name: 'avg'},
+        { title: 'Minimum', name: 'min'},
+        { title: 'Maximum', name: 'max'},
+        { title: 'All', name: 'all'},
       ],
       bmx280_options: [
-        { title: 'Temperature'},
-        { title: 'Humidity'},
-        { title: 'Pressure'},
+        { title: 'Temperature', name: 'temperature'},
+        { title: 'Humidity', name: 'humidity'},
+        { title: 'Pressure', name: 'pressure'},
       ],
       drawer: true,
       miniVariant: false,
       radioGroup: 0,
       radioGroupBmx280: 0,
       menuIndex: 0,
+      menuFilter: this.$menu_filter,
+      menuBmx280Option: this.$menu_bmx280,
       rightMenuVisible: false,
       settingsVisible: true,
-      settingsMounted: false,
       ds18b20Visible: false,
-      ds18b20Mounted: false,
       bmx280Visible: false,
-      bmx280Mounted: false,
       begin_idx: 0,
       end_idx: 50,
       wait: false,
@@ -199,92 +198,53 @@ export default {
   },
   methods: {
     router: function(route){
-      //this.wait = true;
+      console.log('ROUTE: ', route);
       if(route === 'settings'){
-        console.log(route);
         this.ds18b20Visible = false;
         this.bmx280Visible = false;
         this.rightMenuVisible = false;
-        this.settingsVisible = true;
-        if(this.settingsMounted){
+        if(this.settingsVisible){
           this.$refs.SettingsRef.load_data();
-        }else{
-          this.settingsMounted = true;  
         }
-        this.ds18b20Mounted = false;
-        this.bmx280Mounted = false;
-        this.wait = false;
+        this.settingsVisible = true;
         return;
       }
       if(route === 'ds18b20'){
-        console.log(route);
         this.settingsVisible = false;
         this.bmx280Visible = false;
         this.rightMenuVisible = true;
-        this.ds18b20Visible = true;
-        if(this.ds18b20Mounted){
-          this.$refs.Ds18b20Ref.load_data(this.get_filter());
-        }else{
-          this.ds18b20Mounted = true;
+        if(this.ds18b20Visible){
+          this.$refs.Ds18b20Ref.load_data(this.menuFilter);
         }
-        this.settingsMounted = false;
-        this.bmx280Mounted = false; 
-        this.wait = false;
+        this.ds18b20Visible = true;
         return;
       }
       if(route === 'bmx280'){
-        console.log(route);
         this.settingsVisible = false;
         this.ds18b20Visible = false;
         this.rightMenuVisible = true;
-        this.bmx280Visible = true;
-        if(this.bmx280Mounted){
-          this.$refs.Bmx280Ref.load_data(this.get_filter(), this.get_bmx280_option());
-        }else{
-          this.bmx280Mounted = true;
+        if(this.bmx280Visible){
+          this.$refs.Bmx280Ref.load_data(this.menuFilter, this.menuBmx280Option);
         }
-        this.settingsMounted = false;
-        this.ds18b20Mounted = false;
-        this.wait = false;
+        this.bmx280Visible = true;
         return;
       }
     },
-    menuActionClick(index){
+    menu_action_click: function(index){
       this.menuIndex = index;
       const route = this.items[index].name;
       this.router(route);
     },
-    menuRadioClick(){
+    menu_radio_click: function(index){
+      this.menuFilter = this.options[index].name;
       const route = this.items[this.menuIndex].name;
       this.router(route);
     },
-    menuBmx280RadioClick(){
+    menu_bmx280_radio_click: function(index){
+      this.menuBmx280Option =  this.bmx280_options[index].name;
       const route = this.items[this.menuIndex].name;
       this.router(route);
     },
-    get_filter(){
-      switch(this.radioGroup){
-        case 0:
-          return 'avg';
-        case 1:
-          return 'min';
-        case 2:
-          return 'max';
-        case 3:
-          return 'all';
-      }
-    },
-    get_bmx280_option(){
-      switch(this.radioGroupBmx280){
-        case 0:
-          return 'temperature';
-        case 1:
-          return 'humidity';
-        case 2:
-          return 'pressure';
-      }
-    },     
-
   },
 };
 </script>
