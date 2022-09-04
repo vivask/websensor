@@ -1,8 +1,8 @@
 <template>
   <v-app id="inspire">
-    <modal name="wait" 
-      :height="0"
-      :width="0"
+    <modal name="wait-spinner" 
+      :height=0
+      :width=0
       :adaptive="true"
       >
         <WaitSpinner/>
@@ -12,6 +12,7 @@
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-app-bar-title>Websensor</v-app-bar-title>
         <v-spacer></v-spacer>
+
         <v-menu
           v-if="bmx280Visible"
           left
@@ -23,7 +24,7 @@
               v-bind="attrs"
               v-on="on"
             >
-              <v-icon>mdi-water-percent</v-icon>
+              <v-icon>mdi-gauge</v-icon>
             </v-btn>
           </template>
           
@@ -43,7 +44,41 @@
               </v-radio-group>
             </v-container>
           </template>
-        </v-menu>                
+        </v-menu> 
+
+        <v-menu
+          v-if="ahtVisible"
+          left
+          bottom
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              icon
+              v-bind="attrs"
+              v-on="on"
+            >
+              <v-icon>mdi-water-percent</v-icon>
+            </v-btn>
+          </template>
+          
+          <template>
+            <v-container
+              class="pl-5 mt-10"
+              fluid
+            >
+              <v-radio-group v-model="radioGroupAht">
+                <v-radio
+                  v-for="(item, index) in aht_options"
+                  :key="index"
+                  :label="`${item.title}`"
+                  :value="index"
+                  @click="menu_aht_radio_click(index)"
+                ></v-radio>
+              </v-radio-group>
+            </v-container>
+          </template>
+        </v-menu> 
+
         <v-menu
           v-if="rightMenuVisible"
           left
@@ -75,7 +110,8 @@
               </v-radio-group>
             </v-container>
           </template>
-        </v-menu>        
+        </v-menu>  
+
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" fixed app clipped>
@@ -114,6 +150,9 @@
           <v-container v-if="bmx280Visible">
             <Bmx280 ref="Bmx280Ref"></Bmx280>
           </v-container>
+          <v-container v-if="ahtVisible">
+            <Aht ref="AhtRef"></Aht>
+          </v-container>
         </template>
 
       </v-container>
@@ -130,6 +169,7 @@ import WaitSpinner from './components/WaitSpinner.vue';
 import Settings from  './components/Settings.vue';
 import Ds18b20 from './components/Ds18b20.vue';
 import Bmx280 from './components/Bmx280.vue';
+import Aht from './components/Aht.vue';
 
 export default {
   name: "App",
@@ -138,15 +178,17 @@ export default {
     Settings,
     Ds18b20,
     Bmx280,
+    Aht,
 },
   data() {
     return {
       menu: null,
       items: [
         { title: 'Settings', icon: 'mdi-cog', path: '/', name: 'settings' },
-        { title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' },
-//        { title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' }
-      ],
+//        { title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' },
+//        { title: 'Bmx280', icon: 'mdi-gauge', path: '/bmx280', name: 'bmx280' },
+//        { title: 'Aht', icon: 'mdi-water-percent', path: '/aht', name: 'aht' }
+],
       options: [
         { title: 'Average', name: 'avg'},
         { title: 'Minimum', name: 'min'},
@@ -158,15 +200,21 @@ export default {
         { title: 'Humidity', name: 'humidity'},
         { title: 'Pressure', name: 'pressure'},
       ],
+      aht_options: [
+        { title: 'Temperature', name: 'temperature'},
+        { title: 'Humidity', name: 'humidity'},
+      ],
       drawer: true,
       miniVariant: false,
       radioGroup: 0,
       radioGroupBmx280: 0,
+      radioGroupAht: 0,
       menuIndex: 0,
       rightMenuVisible: false,
       settingsVisible: true,
       ds18b20Visible: false,
       bmx280Visible: false,
+      ahtVisible: false,
       begin_idx: 0,
       end_idx: 50,
     };
@@ -179,9 +227,11 @@ export default {
           this.items.push({ title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' });
         }
         if(response.data.bmx280_available){
-          this.items.push({ title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' });
+          this.items.push({ title: 'Bmx280', icon: 'mdi-gauge', path: '/bmx280', name: 'bmx280' });
         }
-        this.$store.commit('set_popup_wait_window', document.getElementById('popup-wait'));
+        if(response.data.aht_available){
+          this.items.push({ title: 'Aht', icon: 'mdi-water-percent', path: '/aht', name: 'aht' });
+        }
       })
       .catch(error => {
         console.log(error);
@@ -201,27 +251,39 @@ export default {
         return;
       }
       if(route === 'ds18b20'){
-        this.$modal.show("wait");
-        /*this.settingsVisible = false;
+        this.$modal.show('wait-spinner');
+        this.settingsVisible = false;
         this.bmx280Visible = false;
+        this.ahtVisible = false;
         this.rightMenuVisible = true;
         if(this.ds18b20Visible){
           this.$refs.Ds18b20Ref.load_data();
         }
-        this.ds18b20Visible = true;*/
-        //this.$refs.WaitRef.hide_wait_minow();
+        this.ds18b20Visible = true;
         return;
       }
       if(route === 'bmx280'){
-        this.$refs.WaitRef.show_wait_window();
+        this.$modal.show('wait-spinner');
         this.settingsVisible = false;
         this.ds18b20Visible = false;
+        this.ahtVisible = false;
         this.rightMenuVisible = true;
         if(this.bmx280Visible){
           this.$refs.Bmx280Ref.load_data();
         }
         this.bmx280Visible = true;
-        this.$refs.WaitRef.hide_wait_minow();
+        return;
+      }
+      if(route === 'aht'){
+        this.$modal.show('wait-spinner');
+        this.settingsVisible = false;
+        this.ds18b20Visible = false;
+        this.bmx280Visible = false;
+        this.rightMenuVisible = true;
+        if(this.ahtVisible){
+          this.$refs.AhtRef.load_data();
+        }
+        this.ahtVisible = true;
         return;
       }
     },

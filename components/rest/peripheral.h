@@ -24,6 +24,7 @@ void peripheral_start(time_t begin, time_t end);
 void peripheral_stop();
 bool ds18b20_available();
 bool bmx280_available();
+bool aht_available();
 
 #ifdef __cplusplus
 }

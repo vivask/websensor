@@ -19,7 +19,9 @@
 extern "C" {
 #endif
 
-esp_err_t test_generate_data(int count, time_t* begin, time_t* end);
+esp_err_t test_generate_data_ds18b20(int count, time_t* begin, time_t* end);
+esp_err_t test_generate_data_bmx280(int count, time_t* begin, time_t* end);
+esp_err_t test_generate_data_aht(int count, time_t* begin, time_t* end);
 
 #ifdef __cplusplus
 }

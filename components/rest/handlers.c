@@ -154,6 +154,7 @@ esp_err_t settings_info_get_handler(httpd_req_t *req){
     cJSON_AddStringToObject(root, "end_time", end_time);
     cJSON_AddBoolToObject(root, "ds18b20_available", ds18b20_available());
     cJSON_AddBoolToObject(root, "bmx280_available", bmx280_available());
+    cJSON_AddBoolToObject(root, "aht_available", aht_available());
 #ifdef CONFIG_WEB_DEPLOY_SF    
     cJSON_AddNumberToObject(root, "space_capacity", spiffs_available_bytes());
 #endif
@@ -279,7 +280,7 @@ esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -518,3 +519,26 @@ esp_err_t bmx280_data_get_pressure_avg_handler(httpd_req_t *req){
     return ESP_OK;
 }
 
+esp_err_t aht_data_get_all_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    slect_params_t params;
+    ret = get_select_params(&params, req, "/api/v1/aht/read/all");
+    if(ret != ESP_OK){
+        return ret;
+    }
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_all_aht(root, &params);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    //ESP_LOGI(TAG, "JSON: %s", json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}

@@ -39,29 +39,68 @@ static void set_hwclock(const char* time){
     settimeofday(&now, NULL);
 }
 
-
-esp_err_t test_generate_data(int count, time_t* begin, time_t* end){
+esp_err_t test_generate_data_ds18b20(int count, time_t* begin, time_t* end){
     set_hwclock("2022-09-02 10:00:00");
     time_t t = time(0);
     struct tm* tm = localtime(&t);  
     *begin = mktime(tm);
-    //ds18b20_data_t ds18b20 = {0};
+    ds18b20_data_t ds18b20 = {0};
+    uint32_t random;
+    for(int i=0; i<count; i++){
+        t = mktime(tm);
+        ds18b20.date_time = t;
+        getrandom(&random, sizeof(uint32_t), 0);
+        ds18b20.temperature = random/10000000;
+        esp_err_t ret = insert_ds18b20(&ds18b20);
+        if(ret != ESP_OK){
+            return ret;
+        }
+        ESP_LOGI(TAG, "Count: %d", i);
+        tm->tm_sec += 5;
+    }
+    *end = t;
+    return ESP_OK;
+}
+
+esp_err_t test_generate_data_bmx280(int count, time_t* begin, time_t* end){
+    set_hwclock("2022-09-02 10:00:00");
+    time_t t = time(0);
+    struct tm* tm = localtime(&t);  
+    *begin = mktime(tm);
     bmx280_data_t bmx280 = {0};
     uint32_t random;
     for(int i=0; i<count; i++){
         t = mktime(tm);
-        //ds18b20.date_time = t;
         bmx280.date_time = t;
         getrandom(&random, sizeof(uint32_t), 0);
-        //ds18b20.temperature = random/10000000;
         bmx280.temperature = random/10000000;
         bmx280.humidity = random/10000000/100*(99-1)+1;
         bmx280.pressure = random/1000000*0.83;
-        /*esp_err_t ret = insert_ds18b20(&ds18b20);
+        esp_err_t ret = insert_bmx280(&bmx280);
         if(ret != ESP_OK){
             return ret;
-        }*/
-        esp_err_t ret = insert_bmx280(&bmx280);
+        }
+        ESP_LOGI(TAG, "Count: %d", i);
+        tm->tm_sec += 5;
+    }
+    *end = t;
+    return ESP_OK;
+}
+
+esp_err_t test_generate_data_aht(int count, time_t* begin, time_t* end){
+    set_hwclock("2022-09-02 10:00:00");
+    time_t t = time(0);
+    struct tm* tm = localtime(&t);  
+    *begin = mktime(tm);
+    aht_data_t aht = {0};
+    uint32_t random;
+    for(int i=0; i<count; i++){
+        t = mktime(tm);
+        aht.date_time = t;
+        getrandom(&random, sizeof(uint32_t), 0);
+        aht.temperature = random/10000000;
+        aht.humidity = random/10000000/100*(99-1)+1;
+        esp_err_t ret = insert_aht(&aht);
         if(ret != ESP_OK){
             return ret;
         }

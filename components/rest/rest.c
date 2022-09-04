@@ -277,6 +277,15 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &bmx280_data_get_pressure_avg_uri);
 
+    /* URI handler for fetching aht all measurements */
+    httpd_uri_t aht_data_get_all_uri = {
+        .uri = "/api/v1/aht/read/all/*",
+        .method = HTTP_GET,
+        .handler = aht_data_get_all_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &aht_data_get_all_uri);
+
     /* URI handler for getting web server files */
     httpd_uri_t common_get_uri = {
         .uri = "/*",

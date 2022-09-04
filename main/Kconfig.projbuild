@@ -5,6 +5,25 @@ menu "Websensor Configuration"
         help
             Debug mode.
 
+    config WEB_I2C_SCL_IO
+        int "I2C SCL IO"
+        default 22
+        help
+            I2C SCL pin number.
+
+    config WEB_I2C_SDA_IO
+        int "I2C SDA IO"
+        default 23
+        help
+            I2C SDA pin number.
+
+    config WEB_DS18B20_GPIO
+        int "DS18B20 IO"
+        default 17
+        help
+            DS18B20 pin number.
+
+
     choice WEB_DEPLOY_MODE
         prompt "Website deploy mode"
         default WEB_DEPLOY_SEMIHOST
@@ -57,6 +76,29 @@ menu "Websensor Configuration"
             bool "Use SPI mode"
             default false
     endif    
+
+    if WEB_DEPLOY_SD && USE_SPI_MODE
+        config SD_MISO_IO
+            int "Sd card MISO IO"
+            default 19
+            help
+                Sd card MISO pin number.
+        config SD_MOSI_IO
+            int "Sd card MOSI IO"
+            default 21
+            help
+                Sd card MOSI pin number.
+        config SD_CLK_IO
+            int "Sd card CLK IO"
+            default 18
+            help
+                Sd card CLK pin number.
+        config SD_CS_IO
+            int "Sd card CS IO"
+            default 5
+            help
+                Sd card CS pin number.    
+    endif
 
     config WEB_BASE_PATH
         string "VFS base path"

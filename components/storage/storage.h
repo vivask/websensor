@@ -36,14 +36,21 @@ typedef struct{
 }ds18b20_data_t;
 
 typedef struct{
+    time_t date_time;
+    float temperature;
+    float humidity;
+}aht_data_t;
+
+typedef struct{
     int items_on_page;
     int page_no;
 }slect_params_t;
 
 esp_err_t init_fs(void);
-void remove_all_data();
+void remove_all_sensor_data();
 esp_err_t insert_ds18b20(const ds18b20_data_t* data);
 esp_err_t insert_bmx280(const bmx280_data_t* data);
+esp_err_t insert_aht(const aht_data_t* data);
 esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params);
 esp_err_t fetch_min_ds18b20(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_max_ds18b20(cJSON* root, time_t begin, time_t end);
@@ -58,6 +65,7 @@ esp_err_t fetch_avg_humidity_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_min_pressure_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_max_pressure_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_avg_pressure_bmx280(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_all_aht(cJSON* root, slect_params_t* params);
 
 #ifdef __cplusplus
 }

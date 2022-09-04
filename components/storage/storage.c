@@ -5,8 +5,11 @@
 #include "esp_log.h"
 #include "storage.h"
 
-#define DS18B20_FILE_NAME CONFIG_WEB_BASE_PATH "/ds18b20.bin"
-#define BMX280_FILE_NAME CONFIG_WEB_BASE_PATH "/bmx280.bin"
+#define MOUNT_POINT "/" CONFIG_WEB_MOUNT_POINT
+
+static const char* DS18B20_FILE_NAME = MOUNT_POINT"/ds18b20.bin";
+static const char* BMX280_FILE_NAME = MOUNT_POINT"/bmx280.bin";
+static const char* AHT_FILE_NAME = MOUNT_POINT"/aht.bin";
 
 static const char *TAG = "STORAGE";
 
@@ -44,13 +47,26 @@ static void bmx280_data_to_json(cJSON* items, const bmx280_data_t* data){
 }
 
 
-void remove_all_data(){
+static void aht_data_to_json(cJSON* items, const aht_data_t* data){
+        char time[20];
+        cJSON *item = cJSON_CreateObject();
+        get_date_time(time, data->date_time);
+        cJSON_AddStringToObject(item, "date_time", time);
+        cJSON_AddNumberToObject(item, "temperature", data->temperature);
+        cJSON_AddNumberToObject(item, "humidity", data->humidity);
+        cJSON_AddItemToArray(items, item);
+}
+
+void remove_all_sensor_data(){
     struct stat st;
     if (stat(DS18B20_FILE_NAME, &st) == 0) {
         unlink(DS18B20_FILE_NAME);
     }
     if (stat(BMX280_FILE_NAME, &st) == 0) {
         unlink(BMX280_FILE_NAME);
+    }
+    if (stat(AHT_FILE_NAME, &st) == 0) {
+        unlink(AHT_FILE_NAME);
     }
 }
 
@@ -74,7 +90,7 @@ esp_err_t insert_ds18b20(const ds18b20_data_t* data){
     }
     stat(DS18B20_FILE_NAME, &st);
     ESP_LOGD(TAG, "Success file [%s] writing: %d bytes", DS18B20_FILE_NAME, sz);
-    ESP_LOGD(TAG, "File %s size: %d bytes", DS18B20_FILE_NAME, (int)st.st_size);
+    ESP_LOGD(TAG, "Size: %d bytes", (int)st.st_size);
     return ESP_OK;
 }
 
@@ -102,12 +118,37 @@ esp_err_t insert_bmx280(const bmx280_data_t* data){
     return ESP_OK;
 }
 
+esp_err_t insert_aht(const aht_data_t* data){
+    FILE* f; 
+    struct stat st;
+    if (stat(AHT_FILE_NAME, &st) == 0) {
+        f = fopen(AHT_FILE_NAME, "ab");
+    }else{
+        f = fopen(AHT_FILE_NAME, "wb");
+    }
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file [%s] for writing", AHT_FILE_NAME);
+        return ESP_FAIL;
+    }
+    size_t sz = fwrite(data, sizeof(aht_data_t), 1, f);
+    fclose(f);
+    if(sz == 0){
+        ESP_LOGE(TAG, "Error writing to file %s", AHT_FILE_NAME);
+        return ESP_FAIL;
+    }
+    stat(AHT_FILE_NAME, &st);
+    ESP_LOGD(TAG, "Success file [%s] writing: %d bytes", AHT_FILE_NAME, sz);
+    ESP_LOGD(TAG, "File %s size: %d bytes", AHT_FILE_NAME, (int)st.st_size);
+    return ESP_OK;
+}
+
 static size_t get_ds18b20_pages(int items_on_page){
     struct stat st;
     stat(DS18B20_FILE_NAME, &st);
     float f_pages = st.st_size/sizeof(ds18b20_data_t);
     int INT = trunc(f_pages/items_on_page);
     float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    ESP_LOGD(TAG, "File size: %d, Item size: %d, INT: %d, FLT: %d", (int)st.st_size, (int)sizeof(ds18b20_data_t), INT, (int)((FLT != 0.0) ? 1.0 : 0.0));
     return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
 } 
 
@@ -115,6 +156,15 @@ static size_t get_bmx280_pages(int items_on_page){
     struct stat st;
     stat(BMX280_FILE_NAME, &st);
     float f_pages = st.st_size/sizeof(bmx280_data_t);
+    int INT = trunc(f_pages/items_on_page);
+    float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
+} 
+
+static size_t get_aht_pages(int items_on_page){
+    struct stat st;
+    stat(AHT_FILE_NAME, &st);
+    float f_pages = st.st_size/sizeof(aht_data_t);
     int INT = trunc(f_pages/items_on_page);
     float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
     return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
@@ -147,7 +197,8 @@ esp_err_t fetch_all_ds18b20(cJSON* root, slect_params_t* params){
         }while( idx < end && !feof(f) );
         fclose(f);
     }
-    size_t pages = get_ds18b20_pages(params->items_on_page);
+    size_t pages = get_ds18b20_pages(params->items_on_page);   
+    ESP_LOGD(TAG, "Items: %d, Pages: %d, Count: %d", params->items_on_page, pages, count);
     cJSON_AddNumberToObject(root, "pages", pages);
     cJSON_AddNumberToObject(root, "size", count);
     return ret;
@@ -579,4 +630,39 @@ esp_err_t fetch_max_pressure_bmx280(cJSON* root, time_t begin, time_t end){
 
 esp_err_t fetch_avg_pressure_bmx280(cJSON* root, time_t begin, time_t end){
     return fetch_avg_bmx280(root, begin, end, PRESSURE);
+}
+
+
+esp_err_t fetch_all_aht(cJSON* root, slect_params_t* params){
+    esp_err_t ret = ESP_OK;
+    int count = 0, idx=0;
+    int start = (params->page_no==1) ? 0 : (params->page_no-1)*params->items_on_page;
+    int end = start + params->items_on_page;
+    cJSON *items = cJSON_AddArrayToObject(root, "items");
+    FILE* f = fopen(AHT_FILE_NAME, "rb");
+    if (f == NULL) {
+        ESP_LOGW(TAG, "Not exist file: %s", AHT_FILE_NAME);
+    }else{
+        do{
+            aht_data_t data;
+            size_t sz = fread(&data, sizeof(aht_data_t), 1, f);
+            if(idx >= start) {           
+                if(sz != sizeof(aht_data_t) && ferror(f)){
+                    ESP_LOGE(TAG, "Error reading to file %s", AHT_FILE_NAME);
+                    ret = ESP_FAIL;
+                    break; 
+                }
+                if( feof(f) ) break;
+                count++;
+                aht_data_to_json(items, &data);
+            }
+            idx++;
+        }while( idx < end && !feof(f) );
+        fclose(f);
+    }
+    size_t pages = get_aht_pages(params->items_on_page);   
+    ESP_LOGI(TAG, "Items: %d, Pages: %d, Count: %d", params->items_on_page, pages, count);
+    cJSON_AddNumberToObject(root, "pages", pages);
+    cJSON_AddNumberToObject(root, "size", count);
+    return ret;
 }

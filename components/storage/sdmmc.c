@@ -14,12 +14,10 @@ static const char *TAG = "SDMMC";
 // Pin mapping when using SPI mode.
 // With this mapping, SD card can be used both in SPI and 1-line SD mode.
 // Note that a pull-up on CS line is required in SD mode.
-#define PIN_NUM_MISO    19
-#define PIN_NUM_MOSI    23
-#define PIN_NUM_CLK     18 
-#define PIN_NUM_CS      5
-
-#define SPI_DMA_CHAN    1
+#define PIN_NUM_MISO    CONFIG_SD_MISO_IO
+#define PIN_NUM_MOSI    CONFIG_SD_MOSI_IO
+#define PIN_NUM_CLK     CONFIG_SD_CLK_IO
+#define PIN_NUM_CS      CONFIG_SD_CS_IO
 #endif //USE_SPI_MODE
 
 #if CONFIG_WEB_DEPLOY_SD
@@ -99,7 +97,7 @@ esp_err_t init_fs(void)
     const char *test_file = MOUNT_POINT"/index.html";
     FILE* f = fopen(test_file, "r");
     if(f == NULL){
-        ESP_LOGE(TAG, "Failed to opnen file for reading");
+        ESP_LOGE(TAG, "Failed to opnen file for writing");
         return ESP_OK;
     }
     ESP_LOGI(TAG, "Succes open file: %s", test_file);
