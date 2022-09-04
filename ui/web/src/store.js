@@ -8,7 +8,8 @@ export default new Vuex.Store({
   state: {
     menu_filter: 'avg',
     menu_bmx280: 'temperature',
-    items_array: []
+    items_array: [],
+    popup_wait_window: {}
   },
   mutations: {
     update_menu_filter: (state, new_value) => {
@@ -22,6 +23,9 @@ export default new Vuex.Store({
     },
     update_items_array: (state, new_value) => {
       state.items_array = state.items_array.concat(new_value);
+    },
+    set_popup_wait_window: (state, new_value) => {
+      state.popup_wait_window = new_value;
     }
   },
   getters: {
@@ -33,6 +37,9 @@ export default new Vuex.Store({
     },
     get_items_array: state => {
       return state.items_array;
+    },
+    get_popup_wait_window: state => {
+      return state.popup_wait_window;
     }
   }
 })

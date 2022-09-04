@@ -1,5 +1,12 @@
 <template>
   <v-app id="inspire">
+    <modal name="wait" 
+      :height="0"
+      :width="0"
+      :adaptive="true"
+      >
+        <WaitSpinner/>
+    </modal>  
     
     <v-app-bar color="indigo accent-4" elevation="4" app clipped-left flat dark>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
@@ -101,23 +108,11 @@
           <v-container v-if="settingsVisible">
             <Settings ref="SettingsRef"></Settings>
           </v-container>
-        </template>
-
-        <template>
           <v-container v-if="ds18b20Visible">
             <Ds18b20 ref="Ds18b20Ref"></Ds18b20>
           </v-container>
-        </template>
-
-        <template>
           <v-container v-if="bmx280Visible">
             <Bmx280 ref="Bmx280Ref"></Bmx280>
-          </v-container>
-        </template>
-
-        <template>
-          <v-container v-if="wait">
-            <Wait/>
           </v-container>
         </template>
 
@@ -127,12 +122,11 @@
       <span class="white--text">&copy; VIVASK. All rights reserved.</span>
     </v-footer>
   </v-app>
-  
 </template>
 
 <script>
 
-import Wait from './components/Wait.vue';
+import WaitSpinner from './components/WaitSpinner.vue';
 import Settings from  './components/Settings.vue';
 import Ds18b20 from './components/Ds18b20.vue';
 import Bmx280 from './components/Bmx280.vue';
@@ -140,7 +134,7 @@ import Bmx280 from './components/Bmx280.vue';
 export default {
   name: "App",
   components: {
-    Wait,
+    WaitSpinner,
     Settings,
     Ds18b20,
     Bmx280,
@@ -150,7 +144,7 @@ export default {
       menu: null,
       items: [
         { title: 'Settings', icon: 'mdi-cog', path: '/', name: 'settings' },
-//        { title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' },
+        { title: 'Ds18b20', icon: 'mdi-thermometer', path: '/ds18b20', name: 'ds18b20' },
 //        { title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' }
       ],
       options: [
@@ -175,7 +169,6 @@ export default {
       bmx280Visible: false,
       begin_idx: 0,
       end_idx: 50,
-      wait: false,
     };
   },
   mounted() {
@@ -188,7 +181,7 @@ export default {
         if(response.data.bmx280_available){
           this.items.push({ title: 'Bmx280', icon: 'mdi-water-percent', path: '/bmx280', name: 'bmx280' });
         }
-        this.settingsMounted = true;
+        this.$store.commit('set_popup_wait_window', document.getElementById('popup-wait'));
       })
       .catch(error => {
         console.log(error);
@@ -196,7 +189,7 @@ export default {
   },
   methods: {
     router: function(route){
-      console.log('ROUTE: ', route);
+      //console.log('ROUTE: ', route);
       if(route === 'settings'){
         this.ds18b20Visible = false;
         this.bmx280Visible = false;
@@ -208,16 +201,19 @@ export default {
         return;
       }
       if(route === 'ds18b20'){
-        this.settingsVisible = false;
+        this.$modal.show("wait");
+        /*this.settingsVisible = false;
         this.bmx280Visible = false;
         this.rightMenuVisible = true;
         if(this.ds18b20Visible){
           this.$refs.Ds18b20Ref.load_data();
         }
-        this.ds18b20Visible = true;
+        this.ds18b20Visible = true;*/
+        //this.$refs.WaitRef.hide_wait_minow();
         return;
       }
       if(route === 'bmx280'){
+        this.$refs.WaitRef.show_wait_window();
         this.settingsVisible = false;
         this.ds18b20Visible = false;
         this.rightMenuVisible = true;
@@ -225,6 +221,7 @@ export default {
           this.$refs.Bmx280Ref.load_data();
         }
         this.bmx280Visible = true;
+        this.$refs.WaitRef.hide_wait_minow();
         return;
       }
     },
@@ -255,5 +252,9 @@ export default {
     text-align: center;
     color: #2c3e50;
     margin-top: 60px;
+  }
+  .wait{
+    height: 100%;
+    width: 100%;
   }
 </style>

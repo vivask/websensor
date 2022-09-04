@@ -79,5 +79,5 @@ Select Vue 2
 cd web
 vue add vuetify  
 vue add vuex
-npm install --save axios numeral vuex
+npm install --save axios numeral vuex vue-js-modal
 npm remove @vue/cli-plugin-eslint
