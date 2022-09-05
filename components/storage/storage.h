@@ -66,6 +66,13 @@ esp_err_t fetch_min_pressure_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_max_pressure_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_avg_pressure_bmx280(cJSON* root, time_t begin, time_t end);
 esp_err_t fetch_all_aht(cJSON* root, slect_params_t* params);
+esp_err_t fetch_avg_temperature_aht(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_avg_humidity_aht(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_min_temperature_aht(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_min_humidity_aht(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_max_temperature_aht(cJSON* root, time_t begin, time_t end);
+esp_err_t fetch_max_humidity_aht(cJSON* root, time_t begin, time_t end);
+
 
 #ifdef __cplusplus
 }

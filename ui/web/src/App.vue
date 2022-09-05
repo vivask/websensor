@@ -251,7 +251,6 @@ export default {
         return;
       }
       if(route === 'ds18b20'){
-        this.$modal.show('wait-spinner');
         this.settingsVisible = false;
         this.bmx280Visible = false;
         this.ahtVisible = false;
@@ -263,7 +262,6 @@ export default {
         return;
       }
       if(route === 'bmx280'){
-        this.$modal.show('wait-spinner');
         this.settingsVisible = false;
         this.ds18b20Visible = false;
         this.ahtVisible = false;
@@ -275,7 +273,6 @@ export default {
         return;
       }
       if(route === 'aht'){
-        this.$modal.show('wait-spinner');
         this.settingsVisible = false;
         this.ds18b20Visible = false;
         this.bmx280Visible = false;
@@ -299,6 +296,11 @@ export default {
     },
     menu_bmx280_radio_click: function(index){
       this.$store.commit('update_menu_bmx280', this.bmx280_options[index].name);
+      const route = this.items[this.menuIndex].name;
+      this.router(route);
+    },
+    menu_aht_radio_click: function(index){
+      this.$store.commit('update_menu_aht', this.aht_options[index].name);
       const route = this.items[this.menuIndex].name;
       this.router(route);
     },

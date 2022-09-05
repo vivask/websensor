@@ -53,6 +53,7 @@ export default {
       if(filter == 'all'){
         //"count items on page:page num"
         uri = "/api/v1/aht/read/" + filter + "/100:1";
+        this.$modal.show('wait-spinner');
       }
       console.log('[AHT] Uri: ',uri);
       this.$store.commit('clear_items_array');

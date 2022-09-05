@@ -85,7 +85,7 @@ void peripheral_initialize(){
 #ifdef CONFIG_WEB_TEST_MODE
     time_t begin, end;
     remove_all_sensor_data();
-    test_generate_data_aht(750, &begin, &end);
+    test_generate_data_aht(751, &begin, &end);
     test_settings_set(begin, end);
 #else
     remove_all_sensor_data();

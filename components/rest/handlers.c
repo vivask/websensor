@@ -299,7 +299,7 @@ esp_err_t ds18b20_data_get_min_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -317,7 +317,7 @@ esp_err_t ds18b20_data_get_max_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -335,7 +335,7 @@ esp_err_t ds18b20_data_get_avg_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -359,7 +359,7 @@ esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
         return ret;
     }
     const char *json = cJSON_Print(root);
-    ESP_LOGI(TAG, "JSON: %s", json);
+    //ESP_LOGI(TAG, "JSON: %s", json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);
@@ -537,6 +537,114 @@ esp_err_t aht_data_get_all_handler(httpd_req_t *req){
     }
     const char *json = cJSON_Print(root);
     //ESP_LOGI(TAG, "JSON: %s", json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_temperature_avg_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_avg_temperature_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_humidity_avg_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_avg_humidity_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_temperature_min_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_temperature_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_humidity_min_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_min_humidity_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_temperature_max_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_max_temperature_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t aht_data_get_humidity_max_handler(httpd_req_t *req){
+    esp_err_t ret;
+
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+    ret = fetch_max_humidity_aht(root, begin_loging, end_loging);
+    if(ret != ESP_OK){
+        cJSON_Delete(root);
+        return ret;
+    }
+    const char *json = cJSON_Print(root);
+    ESP_LOGI(TAG, "Uri: [%s], JSON: %s", req->uri, json);
     httpd_resp_sendstr(req, json);
     free((void *)json);
     cJSON_Delete(root);

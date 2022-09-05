@@ -4,10 +4,10 @@
           <v-card>
             <v-card-text>
               <v-data-table
-                :headers="ds18b20Headers"
-                :items="ds18b20Items"
-                :items-per-page="ds18b20ItemsPerPage"
-                :footer-props="ds18b20Footer"
+                :headers="headers"
+                :items="items"
+                :items-per-page="10"
+                :footer-props="footer"
                 class="elevation-1"
               >
                 <template v-slot:item.temperature="{ item }">
@@ -24,7 +24,7 @@
 export default {
     data() {
         return {
-            ds18b20Headers: [
+            headers: [
                 {
                 text: 'Date',
                 align: 'start',
@@ -33,9 +33,8 @@ export default {
                 },
                 { text: 'Temperature (°C)', value: 'temperature' , formatter: this.floatFormat},
             ],
-            ds18b20Items: [],
-            ds18b20ItemsPerPage: 10,
-            ds18b20Footer: {'items-per-page-options': [10, 50, 100, -1]},
+            items: [],
+            footer: {'items-per-page-options': [10, 50, 100, -1]},
         }
     },
     mounted() {
@@ -48,6 +47,7 @@ export default {
         if(filter == 'all'){
           //"count items on page:page num"
           uri = uri + "/100:1";
+          this.$modal.show('wait-spinner');
         }
         console.log('[DS18B20] Uri: ',uri);
         this.$store.commit('clear_items_array');
@@ -56,13 +56,13 @@ export default {
           .then(response => {
             this.$store.commit('update_items_array', response.data.items);
             if(filter != 'all'){
-              this.ds18b20Items = this.$store.getters.get_items_array;  
+              this.items = this.$store.getters.get_items_array;  
               this.$modal.hide('wait-spinner');
             }else{
               const pages = response.data.pages;
               this.get_next_page(2, pages)
               .then(response => {
-                this.ds18b20Items = this.$store.getters.get_items_array;
+                this.items = this.$store.getters.get_items_array;
                 this.$modal.hide('wait-spinner');
               })
               .catch(error => {

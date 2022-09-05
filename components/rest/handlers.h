@@ -51,6 +51,12 @@ esp_err_t bmx280_data_get_pressure_min_handler(httpd_req_t *req);
 esp_err_t bmx280_data_get_pressure_max_handler(httpd_req_t *req);
 esp_err_t bmx280_data_get_pressure_avg_handler(httpd_req_t *req);
 esp_err_t aht_data_get_all_handler(httpd_req_t *req);
+esp_err_t aht_data_get_temperature_avg_handler(httpd_req_t *req);
+esp_err_t aht_data_get_humidity_avg_handler(httpd_req_t *req);
+esp_err_t aht_data_get_temperature_min_handler(httpd_req_t *req);
+esp_err_t aht_data_get_humidity_min_handler(httpd_req_t *req);
+esp_err_t aht_data_get_temperature_max_handler(httpd_req_t *req);
+esp_err_t aht_data_get_humidity_max_handler(httpd_req_t *req);
 
 #ifdef __cplusplus
 }

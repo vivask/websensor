@@ -158,6 +158,7 @@ static size_t get_bmx280_pages(int items_on_page){
     float f_pages = st.st_size/sizeof(bmx280_data_t);
     int INT = trunc(f_pages/items_on_page);
     float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    ESP_LOGD(TAG, "File size: %d, Item size: %d, INT: %d, FLT: %d", (int)st.st_size, (int)sizeof(ds18b20_data_t), INT, (int)((FLT != 0.0) ? 1.0 : 0.0));
     return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
 } 
 
@@ -167,6 +168,7 @@ static size_t get_aht_pages(int items_on_page){
     float f_pages = st.st_size/sizeof(aht_data_t);
     int INT = trunc(f_pages/items_on_page);
     float FLT = f_pages/items_on_page - trunc(f_pages/items_on_page);
+    ESP_LOGI(TAG, "File size: %d, Item size: %d, INT: %d, FLT: %d", (int)st.st_size, (int)sizeof(ds18b20_data_t), INT, (int)((FLT != 0.0) ? 1.0 : 0.0));
     return  INT + (int)((FLT != 0.0) ? 1.0 : 0.0);
 } 
 
@@ -319,6 +321,7 @@ esp_err_t fetch_avg_ds18b20(cJSON* root, time_t begin, time_t end){
         }while( !feof(f) && data.date_time < end);
         fseek(f, 0L, SEEK_SET);
         count = 0;
+        next = next_hour(begin);
         float dev = average[0];
         do{
             size_t sz = fread(&data, sizeof(ds18b20_data_t), 1, f);
@@ -327,10 +330,8 @@ esp_err_t fetch_avg_ds18b20(cJSON* root, time_t begin, time_t end){
                 ret = ESP_FAIL;
                 break; 
             }
-            if(data.date_time < begin) {
-                continue;
-            }else{
-                if(dev > fabs(average[count] - data.temperature)){
+            if(data.date_time > begin) {
+                if( avg.date_time == 0 || dev > fabs(average[count] - data.temperature )){
                     dev = fabs(average[count] - data.temperature);
                     memcpy(&avg, &data, sizeof(ds18b20_data_t));
                 }
@@ -383,10 +384,10 @@ esp_err_t fetch_all_bmx280(cJSON* root, slect_params_t* params){
 
 typedef enum {
     TEMPERATURE, HUMIDITY, PRESSURE
-}bmx_280_param_t;
+}sensor_weigth_t;
 
 //fetch the minimum values per hour in a given period
-static esp_err_t fetch_min_bmx280(cJSON* root, time_t begin, time_t end, bmx_280_param_t param){
+static esp_err_t fetch_min_bmx280(cJSON* root, time_t begin, time_t end, sensor_weigth_t param){
     esp_err_t ret = ESP_OK;
     int count = 0;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
@@ -443,7 +444,7 @@ static esp_err_t fetch_min_bmx280(cJSON* root, time_t begin, time_t end, bmx_280
 }
 
 //fetch the maximum values per hour in a given period
-static esp_err_t fetch_max_bmx280(cJSON* root, time_t begin, time_t end, bmx_280_param_t param){
+static esp_err_t fetch_max_bmx280(cJSON* root, time_t begin, time_t end, sensor_weigth_t param){
     esp_err_t ret = ESP_OK;
     int count = 0;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
@@ -464,23 +465,20 @@ static esp_err_t fetch_max_bmx280(cJSON* root, time_t begin, time_t end, bmx_280
             if(data.date_time < begin) {
                 continue;
             }else{
-                if( max.date_time == 0 || data.temperature > max.temperature){
-                    memcpy(&max, &data, sizeof(bmx280_data_t));
-                }
                 switch (param)
                 {
                 case TEMPERATURE:
-                    if( max.date_time == 0 || data.temperature > max.temperature){
+                    if( max.date_time == 0 || data.temperature > max.temperature ){
                         memcpy(&max, &data, sizeof(bmx280_data_t));
                     }
                     break;
                 case HUMIDITY:
-                    if( max.date_time == 0 || data.humidity > max.humidity){
+                    if( max.date_time == 0 || data.humidity > max.humidity ){
                         memcpy(&max, &data, sizeof(bmx280_data_t));
                     }
                     break;
                 case PRESSURE:
-                    if( max.date_time == 0 || data.pressure > max.pressure){
+                    if( max.date_time == 0 || data.pressure > max.pressure ){
                         memcpy(&max, &data, sizeof(bmx280_data_t));
                     }
                     break;
@@ -496,14 +494,14 @@ static esp_err_t fetch_max_bmx280(cJSON* root, time_t begin, time_t end, bmx_280
                     memset(&max, 0x00, sizeof(bmx280_data_t));
                 }
             }
-        }while( !feof(f) && data.date_time < end);
+        }while( !feof(f) && data.date_time < end );
         fclose(f);
     }
     cJSON_AddNumberToObject(root, "size", count);
     return ret;        
 }
 
-static esp_err_t fetch_avg_bmx280(cJSON* root, time_t begin, time_t end, bmx_280_param_t param){
+static esp_err_t fetch_avg_bmx280(cJSON* root, time_t begin, time_t end, sensor_weigth_t param){
     esp_err_t ret = ESP_OK;
     int count = 0;
     cJSON *items = cJSON_AddArrayToObject(root, "items");
@@ -545,13 +543,14 @@ static esp_err_t fetch_avg_bmx280(cJSON* root, time_t begin, time_t end, bmx_280
         }while( !feof(f) && data.date_time < end);
         fseek(f, 0L, SEEK_SET);
         count = 0;
+        next = next_hour(begin);
         float dev_temperature = average_temperature[0];
         float dev_humidity = average_humidity[0];
         float dev_pressure = average_pressure[0];
         do{
             size_t sz = fread(&data, sizeof(bmx280_data_t), 1, f);
             if(sz != sizeof(bmx280_data_t) && ferror(f)){
-                ESP_LOGE(TAG, "Error reading to file %s", DS18B20_FILE_NAME);
+                ESP_LOGE(TAG, "Error reading to file %s", BMX280_FILE_NAME);
                 ret = ESP_FAIL;
                 break; 
             }
@@ -561,19 +560,19 @@ static esp_err_t fetch_avg_bmx280(cJSON* root, time_t begin, time_t end, bmx_280
                 switch (param)
                 {
                 case TEMPERATURE:
-                    if(dev_temperature > fabs(average_temperature[count] - data.temperature)){
+                    if( avg.date_time == 0 || dev_temperature > fabs(average_temperature[count] - data.temperature) ){
                         dev_temperature = fabs(average_temperature[count] - data.temperature);
                         memcpy(&avg, &data, sizeof(bmx280_data_t));
                     }
                     break;                
                 case HUMIDITY:
-                    if(dev_humidity > fabs(average_humidity[count] - data.humidity)){
+                    if( avg.date_time == 0 || dev_humidity > fabs(average_humidity[count] - data.humidity) ){
                         dev_humidity = fabs(average_humidity[count] - data.humidity);
                         memcpy(&avg, &data, sizeof(bmx280_data_t));
                     }
                     break;          
                 case PRESSURE:
-                    if(dev_pressure > fabs(average_pressure[count] - data.pressure)){
+                    if( avg.date_time == 0 || dev_pressure > fabs(average_pressure[count] - data.pressure) ){
                         dev_pressure = fabs(average_pressure[count] - data.pressure);
                         memcpy(&avg, &data, sizeof(bmx280_data_t));
                     }
@@ -632,7 +631,6 @@ esp_err_t fetch_avg_pressure_bmx280(cJSON* root, time_t begin, time_t end){
     return fetch_avg_bmx280(root, begin, end, PRESSURE);
 }
 
-
 esp_err_t fetch_all_aht(cJSON* root, slect_params_t* params){
     esp_err_t ret = ESP_OK;
     int count = 0, idx=0;
@@ -665,4 +663,213 @@ esp_err_t fetch_all_aht(cJSON* root, slect_params_t* params){
     cJSON_AddNumberToObject(root, "pages", pages);
     cJSON_AddNumberToObject(root, "size", count);
     return ret;
+}
+
+static esp_err_t fetch_avg_aht(cJSON* root, time_t begin, time_t end, sensor_weigth_t weight){
+    esp_err_t ret = ESP_OK;
+    int count = 0;
+    cJSON *items = cJSON_AddArrayToObject(root, "items");
+    FILE* f = fopen(AHT_FILE_NAME, "rb");
+    if (f == NULL) {
+        ESP_LOGW(TAG, "Not exist file: %s", AHT_FILE_NAME);
+    }else{
+        time_t next = next_hour(begin);
+        aht_data_t data, avg;
+        memset(&avg, 0x00, sizeof(aht_data_t));
+        int idx = 0;
+        float tmp_temperature = 0.0, tmp_humidity = 0.0;
+        float average_temperature[24];
+        float average_humidity[24];
+        do{
+            size_t sz = fread(&data, sizeof(aht_data_t), 1, f);
+            if(sz != sizeof(aht_data_t) && ferror(f)){
+                ESP_LOGE(TAG, "Error reading to file %s", AHT_FILE_NAME);
+                ret = ESP_FAIL;
+                break; 
+            }
+            if(data.date_time > begin) {
+                tmp_temperature += data.temperature;
+                tmp_humidity += data.humidity;
+                idx++;
+                if( data.date_time >= next || feof(f) || data.date_time >= end ){
+                    average_temperature[count] = tmp_temperature / idx;
+                    average_humidity[count] = tmp_humidity / idx;
+                    count++;
+                    next = next_hour(next);
+                    idx = 0;
+                }
+            }
+        }while( !feof(f) && data.date_time < end );
+        fseek(f, 0L, SEEK_SET);
+        count = 0;
+        float dev_temperature = average_temperature[0];
+        float dev_humidity = average_humidity[0];
+        next = next_hour(begin);
+        do{
+            size_t sz = fread(&data, sizeof(aht_data_t), 1, f);
+            if(sz != sizeof(aht_data_t) && ferror(f)){
+                ESP_LOGE(TAG, "Error reading to file %s", AHT_FILE_NAME);
+                ret = ESP_FAIL;
+                break; 
+            }
+            if(data.date_time > begin) {
+                switch (weight)
+                {
+                case TEMPERATURE:
+                    if( avg.date_time == 0 || dev_temperature > fabs(average_temperature[count] - data.temperature) ){
+                        dev_temperature = fabs(average_temperature[count] - data.temperature);
+                        memcpy(&avg, &data, sizeof(aht_data_t));
+                    }
+                    break;                
+                case HUMIDITY:
+                    if( avg.date_time == 0 || dev_humidity > fabs(average_humidity[count] - data.humidity) ){
+                        dev_humidity = fabs(average_humidity[count] - data.humidity);
+                        memcpy(&avg, &data, sizeof(aht_data_t));
+                    }
+                    break;          
+                default:
+                    ESP_LOGE(TAG, "Undefined weight: %d", weight);
+                    return ESP_FAIL;
+                }
+                if( data.date_time >= next || feof(f) || data.date_time >= end ){
+                    aht_data_to_json(items, &avg);
+                    next = next_hour(next);
+                    memset(&avg, 0x00, sizeof(aht_data_t));
+                    count++;
+                }
+            }
+        }while( !feof(f) && data.date_time < end  );
+        fclose(f);
+    }
+    cJSON_AddNumberToObject(root, "size", count);
+    return ret;        
+}
+
+//fetch the minimum values per hour in a given period
+static esp_err_t fetch_min_aht(cJSON* root, time_t begin, time_t end, sensor_weigth_t param){
+    esp_err_t ret = ESP_OK;
+    int count = 0;
+    cJSON *items = cJSON_AddArrayToObject(root, "items");
+    FILE* f = fopen(AHT_FILE_NAME, "rb");
+    if (f == NULL) {
+        ESP_LOGW(TAG, "Not exist file: %s", AHT_FILE_NAME);
+    }else{
+        time_t next = next_hour(begin);
+        aht_data_t data, min;
+        memset(&min, 0x00, sizeof(aht_data_t));
+        do{
+            size_t sz = fread(&data, sizeof(aht_data_t), 1, f);
+            if(sz != sizeof(aht_data_t) && ferror(f)){
+                ESP_LOGE(TAG, "Error reading to file %s", AHT_FILE_NAME);
+                ret = ESP_FAIL;
+                break; 
+            }
+            if(data.date_time < begin) {
+                continue;
+            }else{
+                switch (param)
+                {
+                case TEMPERATURE:
+                    if( min.date_time == 0 || min.temperature > data.temperature){
+                        memcpy(&min, &data, sizeof(aht_data_t));
+                    }
+                    break;
+                case HUMIDITY:
+                    if( min.date_time == 0 || min.humidity > data.humidity){
+                        memcpy(&min, &data, sizeof(aht_data_t));
+                    }
+                    break;
+                default:
+                    ESP_LOGE(TAG, "Undefined parameter: %d", param);
+                    return ESP_FAIL;
+                }
+                if( data.date_time >= next || feof(f) || data.date_time >= end ){
+                    count++;
+                    aht_data_to_json(items, &min);
+                    next = next_hour(next);
+                    memset(&min, 0x00, sizeof(aht_data_t));
+                }
+            }
+        }while( !feof(f) && data.date_time < end);
+        fclose(f);
+    }
+    cJSON_AddNumberToObject(root, "size", count);
+    return ret;        
+}
+
+//fetch the maximum values per hour in a given period
+static esp_err_t fetch_max_aht(cJSON* root, time_t begin, time_t end, sensor_weigth_t param){
+    esp_err_t ret = ESP_OK;
+    int count = 0;
+    cJSON *items = cJSON_AddArrayToObject(root, "items");
+    FILE* f = fopen(AHT_FILE_NAME, "rb");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Not exist file: %s", AHT_FILE_NAME);
+    }else{
+        time_t next = next_hour(begin);
+        aht_data_t data, max;
+        memset(&max, 0x00, sizeof(aht_data_t));
+        do{
+            size_t sz = fread(&data, sizeof(aht_data_t), 1, f);
+            if(sz != sizeof(aht_data_t) && ferror(f)){
+                ESP_LOGE(TAG, "Error reading to file %s", AHT_FILE_NAME);
+                ret = ESP_FAIL;
+                break; 
+            }
+            if(data.date_time < begin) {
+                continue;
+            }else{
+                switch (param)
+                {
+                case TEMPERATURE:
+                    if( max.date_time == 0 || data.temperature > max.temperature ){
+                        memcpy(&max, &data, sizeof(aht_data_t));
+                    }
+                    break;
+                case HUMIDITY:
+                    if( max.date_time == 0 || data.humidity > max.humidity ){
+                        memcpy(&max, &data, sizeof(aht_data_t));
+                    }
+                    break;
+                default:
+                    ESP_LOGE(TAG, "Undefined parameter: %d", param);
+                    return ESP_FAIL;
+                }
+
+                if( data.date_time >= next || feof(f) || data.date_time >= end ){
+                    count++;
+                    aht_data_to_json(items, &max);
+                    next = next_hour(next);
+                    memset(&max, 0x00, sizeof(aht_data_t));
+                }
+            }
+        }while( !feof(f) && data.date_time < end );
+        fclose(f);
+    }
+    cJSON_AddNumberToObject(root, "size", count);
+    return ret;        
+}
+
+esp_err_t fetch_avg_temperature_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_avg_aht(root, begin, end, TEMPERATURE);
+}
+
+esp_err_t fetch_avg_humidity_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_avg_aht(root, begin, end, HUMIDITY);
+}
+
+esp_err_t fetch_min_temperature_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_min_aht(root, begin, end, TEMPERATURE);
+}
+
+esp_err_t fetch_min_humidity_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_min_aht(root, begin, end, HUMIDITY);
+}
+
+esp_err_t fetch_max_temperature_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_max_aht(root, begin, end, TEMPERATURE);
+}
+
+esp_err_t fetch_max_humidity_aht(cJSON* root, time_t begin, time_t end){
+    return fetch_max_aht(root, begin, end, HUMIDITY);
 }
