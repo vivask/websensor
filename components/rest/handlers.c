@@ -152,9 +152,15 @@ esp_err_t settings_info_get_handler(httpd_req_t *req){
     cJSON_AddStringToObject(root, "begin_time", begin_time);
     cJSON_AddStringToObject(root, "end_date", end_date);
     cJSON_AddStringToObject(root, "end_time", end_time);
+#ifdef CONFIG_WEB_TEST_MODE    
+    cJSON_AddBoolToObject(root, "ds18b20_available", true);
+    cJSON_AddBoolToObject(root, "bmx280_available", true);
+    cJSON_AddBoolToObject(root, "aht_available", true);
+#else
     cJSON_AddBoolToObject(root, "ds18b20_available", ds18b20_available());
     cJSON_AddBoolToObject(root, "bmx280_available", bmx280_available());
     cJSON_AddBoolToObject(root, "aht_available", aht_available());
+#endif
 #ifdef CONFIG_WEB_DEPLOY_SF    
     cJSON_AddNumberToObject(root, "space_capacity", spiffs_available_bytes());
 #endif

@@ -1,4 +1,6 @@
 <template>
+  <mobile>
+
   <v-app id="inspire">
     <modal name="wait-spinner" 
       :height=0
@@ -161,6 +163,7 @@
       <span class="white--text">&copy; VIVASK. All rights reserved.</span>
     </v-footer>
   </v-app>
+  </mobile>
 </template>
 
 <script>
@@ -205,7 +208,6 @@ export default {
         { title: 'Humidity', name: 'humidity'},
       ],
       drawer: true,
-      miniVariant: false,
       radioGroup: 0,
       radioGroupBmx280: 0,
       radioGroupAht: 0,

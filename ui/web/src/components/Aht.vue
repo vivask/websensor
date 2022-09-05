@@ -61,11 +61,11 @@ export default {
         .get(uri)
         .then(response => {
           this.$store.commit('update_items_array', response.data.items);
-          if(filter != 'all'){
+          const pages = response.data.pages;
+          if(filter != 'all' || pages == 1){
             this.items = this.$store.getters.get_items_array;  
             this.$modal.hide('wait-spinner');
           }else{
-            const pages = response.data.pages;
             this.get_next_page(2, pages)
             .then(response => {
               this.items = this.$store.getters.get_items_array;

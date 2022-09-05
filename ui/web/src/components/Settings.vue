@@ -1,4 +1,5 @@
 <template>
+  <modile>
       <v-layout text-xs-center wrap>
         <v-flex xs12 sm6 offset-sm3>
           <v-card>
@@ -53,6 +54,7 @@
           </v-card>
         </v-flex>
       </v-layout>
+  </modile>
 </template>
 
 <script>
