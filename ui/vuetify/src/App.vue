@@ -1,8 +1,8 @@
 <template>
-  <mobile>
+  <mobile> 
 
   <v-app id="inspire">
-    <modal name="wait-spinner" 
+    <modal name="wait-spinner"   
       :height=0
       :width=0
       :adaptive="true"
@@ -182,7 +182,7 @@ export default {
     Ds18b20,
     Bmx280,
     Aht,
-},
+  },
   data() {
     return {
       menu: null,

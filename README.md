@@ -81,3 +81,34 @@ vue add vuetify
 vue add vuex
 npm install --save axios numeral vuex vue-js-modal
 npm remove @vue/cli-plugin-eslint
+
+# Create quasar project
+
+## Install gradle
+  Install gradle with jdk-8 (jdk-11, 17, 18 not supported cordava)
+
+## Install Android Studio
+  Install android-studio
+  edit ~/bashrc, and add here:
+  export ANDROID_HOME="$HOME/Android/Sdk"
+  export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+  export PATH=$PATH:$ANDROID_SDK_ROOT/tools; PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+
+  - Start Android Studio and select SDK Manager. 
+  - Select SDK Platforms: 14-19, 21-30.
+  - Select SDK Tools and select Show Packages Details, then select 30.0.3 (platforms 31 and above are not supported gradle)
+
+### Create android virtual machine
+  - Start Android Studio and select Virtual Device Manager. 
+
+## Install quasar
+  npm i -g @quasar/cli
+  npm install -g cordova
+  npm init quasar
+
+  cd quasar project
+  quasar mode add cordova
+  cd src-cordova
+  cordova platform add android@10 (in this case under version 10 android)
+  cordova requirements
+
