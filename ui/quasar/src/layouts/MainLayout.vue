@@ -119,10 +119,8 @@
             <template v-for="(menuItem, index) in menuList" :key="index">
               <q-item
               clickable
-              :active="this.store.isSelected"
+              :active="menuItem.clicked"
               v-ripple
-              tag="a"
-              target="_blank"
               :href="menuItem.link"
               >
                 <q-item-section avatar>
@@ -145,12 +143,21 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
   </q-layout>
+
+  <q-dialog
+  v-model="waitSpinner"
+  >
+        <WaitSpinner/>
+  </q-dialog>
+
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, computed } from 'vue'
 import { useLayoutStore } from 'stores/layout'
+import WaitSpinner from 'components/WaitSpinner.vue';
 
 
 
@@ -193,6 +200,10 @@ const linksList = [
 export default defineComponent({
   name: 'MainLayout',
 
+  components: {
+    WaitSpinner
+  },
+
   setup () {
     const store = useLayoutStore()
     const leftDrawerOpen = ref(false)
@@ -207,21 +218,18 @@ export default defineComponent({
       ahtMenuVisible: true,
       mainFilter: ref('avg'),
       ahtOption: ref('temperature'),
+      waitSpinner: computed(() => store.wait_spinner),
     }
   },
   methods: {
     triggerMainOptions () {
-      //this.store.set_filter(this.mainFilter);
+      this.store.set_filter(this.mainFilter);
       //console.log(EssentialLink.get_title())
     },
     triggerAhtOptions () {
-      //this.store.set_aht_option(this.ahtOption);
-      console.log(this.store.get_current_path)
+      this.store.set_aht_option(this.ahtOption);
+      //console.log(this.store.get_current_path)
     },
-    menuClick (index) {
-      this.store.set_current_path(this.menuList[index].link)
-      //this.$router.push(this.menuList[index].link)
-    }
   }
 })
 </script>

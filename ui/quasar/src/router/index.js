@@ -1,6 +1,7 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
+import { useLayoutStore } from 'stores/layout'
 
 /*
  * If not building with SSR mode, you can
@@ -27,6 +28,8 @@ export default route(function ({ /* store , ssrContext */ }) {
   })
 
   Router.beforeEach((to, from, next) => {
+    const store = useLayoutStore()
+    store.set_current_path(to.path)
     next()
   })
 
