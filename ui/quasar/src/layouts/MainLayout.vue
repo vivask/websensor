@@ -5,19 +5,13 @@
         <q-btn flat dense round icon="mdi-menu" class="q-mr-sm" @click="toggleLeftDrawer" />
         <q-toolbar-title>Websensor</q-toolbar-title>
 
-        <q-btn
-          to="/aht"
-          flat
-          icon-right="account_circle"
-        />
-
         <q-btn flat round dense icon="mdi-dots-vertical" v-if="rightMenuVisible" >
           <q-menu>
             <q-list>
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="mainOptionsGroup"
+                  v-model="mainFilter"
                   val="avg"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -30,7 +24,7 @@
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="mainOptionsGroup"
+                  v-model="mainFilter"
                   val="min"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -43,7 +37,7 @@
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="mainOptionsGroup"
+                  v-model="mainFilter"
                   val="max"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -56,7 +50,7 @@
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="mainOptionsGroup"
+                  v-model="mainFilter"
                   val="all"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -76,7 +70,7 @@
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="ahtOptionsGroup"
+                  v-model="ahtOption"
                   val="temperature"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -89,7 +83,7 @@
               <q-item tag="label" v-ripple>
                 <q-item-section avatar>
                   <q-radio
-                  v-model="ahtOptionsGroup"
+                  v-model="ahtOption"
                   val="humidity"
                   checked-icon="task_alt"
                   unchecked-icon="panorama_fish_eye"
@@ -110,21 +104,43 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
+      :width="200"
+      class="bg-grey-3"
     >
+
+      <q-scroll-area class="fit">
       <q-list>
         <q-item-label
           header
         >
-          Essential Links
+          Menu
         </q-item-label>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
+            <template v-for="(menuItem, index) in menuList" :key="index">
+              <q-item
+              clickable
+              :active="this.store.isSelected"
+              v-ripple
+              tag="a"
+              target="_blank"
+              :href="menuItem.link"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="menuItem.icon" :color="menuItem.color" />
+                </q-item-section>
+                <q-item-section>
+                  {{ menuItem.title }}
+                </q-item-section>
+              </q-item>
+              <q-separator :key="'sep' + index" v-if="menuItem.separator" />
+            </template>
+
       </q-list>
+    </q-scroll-area>
+
+
     </q-drawer>
+
 
     <q-page-container>
       <router-view />
@@ -134,45 +150,77 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
+import { useLayoutStore } from 'stores/layout'
+
 
 
 const linksList = [
-  { title: 'Settings', icon: 'mdi-cog', link: '/', name: 'settings', visible: true },
-  { title: 'Ds18b20', icon: 'mdi-thermometer', link: '#/ds18b20', name: 'ds18b20', visible: false },
-  { title: 'Bmx280', icon: 'mdi-gauge', link: '#/bmx280', name: 'bmx280', visible: false },
-  { title: 'Aht', icon: 'mdi-water-percent', link: '#/aht', name: 'aht' }
+  {
+    title: 'Settings',
+    icon: 'mdi-cog',
+    color: 'blue',
+    link: '/',
+    clicked: true,
+    separator: true
+  },
+  {
+    title: 'Ds18b20',
+    icon: 'mdi-thermometer',
+    color: 'blue',
+    link: '#/ds18b20',
+    clicked: false,
+    separator: false
+  },
+  {
+    title: 'Bmx280',
+    icon: 'mdi-gauge',
+    color: 'blue',
+    link: '#/bmx280',
+    clicked: false,
+    separator: false
+  },
+  {
+    title: 'Aht',
+    icon: 'mdi-water-percent',
+    color: 'blue',
+    link: '#/aht',
+    clicked: false,
+    separator: false
+  }
 ]
 
 
 export default defineComponent({
   name: 'MainLayout',
 
-  components: {
-    EssentialLink
-  },
-
   setup () {
+    const store = useLayoutStore()
     const leftDrawerOpen = ref(false)
-
     return {
-      essentialLinks: linksList,
+      store,
+      menuList: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
       },
-      rightMenuVisible: false,
-      ahtMenuVisible: false,
-      mainOptionsGroup: ref('avg'),
-      ahtOptionsGroup: ref('temperature'),
+      rightMenuVisible: true,
+      ahtMenuVisible: true,
+      mainFilter: ref('avg'),
+      ahtOption: ref('temperature'),
     }
   },
   methods: {
     triggerMainOptions () {
-      console.log("triggered", this.mainOptionsGroup)
+      //this.store.set_filter(this.mainFilter);
+      //console.log(EssentialLink.get_title())
     },
     triggerAhtOptions () {
-      console.log("triggered", this.ahtOptionsGroup)
+      //this.store.set_aht_option(this.ahtOption);
+      console.log(this.store.get_current_path)
+    },
+    menuClick (index) {
+      this.store.set_current_path(this.menuList[index].link)
+      //this.$router.push(this.menuList[index].link)
     }
   }
 })

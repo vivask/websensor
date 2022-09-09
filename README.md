@@ -103,6 +103,7 @@ npm remove @vue/cli-plugin-eslint
 
 ## Install quasar
   npm i -g @quasar/cli
+  npm install -g axios
   npm install -g cordova
   npm init quasar
 
