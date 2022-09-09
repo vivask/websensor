@@ -224,11 +224,9 @@ export default defineComponent({
   methods: {
     triggerMainOptions () {
       this.store.set_filter(this.mainFilter);
-      //console.log(EssentialLink.get_title())
     },
     triggerAhtOptions () {
       this.store.set_aht_option(this.ahtOption);
-      //console.log(this.store.get_current_path)
     },
   }
 })
