@@ -5,69 +5,10 @@
         <q-btn flat dense round icon="mdi-menu" class="q-mr-sm" @click="toggleLeftDrawer" />
         <q-toolbar-title>Websensor</q-toolbar-title>
 
-        <q-btn flat round dense icon="mdi-dots-vertical" v-if="rightMenuVisible" >
-          <q-menu>
-            <q-list>
-              <q-item tag="label" v-ripple>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="mainFilter"
-                  val="avg"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerMainOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Average</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item tag="label" v-ripple>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="mainFilter"
-                  val="min"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerMainOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Minimum</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item tag="label" v-ripple>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="mainFilter"
-                  val="max"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerMainOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Maximum</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item tag="label" v-ripple>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="mainFilter"
-                  val="all"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerMainOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>All</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-
         <q-btn flat round dense icon="mdi-water-percent" v-if="ahtMenuVisible">
           <q-menu>
             <q-list>
-              <q-item tag="label" v-ripple>
+              <q-item tag="label" v-close-popup>
                 <q-item-section avatar>
                   <q-radio
                   v-model="ahtOption"
@@ -80,7 +21,7 @@
                   <q-item-label>Temperature</q-item-label>
                 </q-item-section>
               </q-item>
-              <q-item tag="label" v-ripple>
+              <q-item tag="label" v-close-popup>
                 <q-item-section avatar>
                   <q-radio
                   v-model="ahtOption"
@@ -91,6 +32,65 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>Humidity</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+
+        <q-btn flat round dense icon="mdi-dots-vertical" v-if="rightMenuVisible" >
+          <q-menu>
+            <q-list>
+              <q-item tag="label" v-close-popup>
+                <q-item-section avatar>
+                  <q-radio
+                  v-model="mainFilter"
+                  val="avg"
+                  checked-icon="task_alt"
+                  unchecked-icon="panorama_fish_eye"
+                  @click="triggerMainOptions" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Average</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item tag="label" v-close-popup>
+                <q-item-section avatar>
+                  <q-radio
+                  v-model="mainFilter"
+                  val="min"
+                  checked-icon="task_alt"
+                  unchecked-icon="panorama_fish_eye"
+                  @click="triggerMainOptions" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Minimum</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item tag="label" v-close-popup>
+                <q-item-section avatar>
+                  <q-radio
+                  v-model="mainFilter"
+                  val="max"
+                  checked-icon="task_alt"
+                  unchecked-icon="panorama_fish_eye"
+                  @click="triggerMainOptions" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Maximum</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item tag="label" v-close-popup>
+                <q-item-section avatar>
+                  <q-radio
+                  v-model="mainFilter"
+                  val="all"
+                  checked-icon="task_alt"
+                  unchecked-icon="panorama_fish_eye"
+                  @click="triggerMainOptions" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>All</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>
@@ -119,7 +119,7 @@
             <template v-for="(menuItem, index) in menuList" :key="index">
               <q-item
               clickable
-              :active="menuItem.clicked"
+              :active="is_selected_menu(menuItem.title)"
               v-ripple
               :href="menuItem.link"
               >
@@ -148,6 +148,7 @@
 
   <q-dialog
   v-model="waitSpinner"
+  maximized
   >
         <WaitSpinner/>
   </q-dialog>
@@ -166,8 +167,7 @@ const linksList = [
     title: 'Settings',
     icon: 'mdi-cog',
     color: 'blue',
-    link: '/',
-    clicked: true,
+    link: '#/',
     separator: true
   },
   {
@@ -175,7 +175,6 @@ const linksList = [
     icon: 'mdi-thermometer',
     color: 'blue',
     link: '#/ds18b20',
-    clicked: false,
     separator: false
   },
   {
@@ -183,7 +182,6 @@ const linksList = [
     icon: 'mdi-gauge',
     color: 'blue',
     link: '#/bmx280',
-    clicked: false,
     separator: false
   },
   {
@@ -191,7 +189,6 @@ const linksList = [
     icon: 'mdi-water-percent',
     color: 'blue',
     link: '#/aht',
-    clicked: false,
     separator: false
   }
 ]
@@ -214,8 +211,8 @@ export default defineComponent({
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
       },
-      rightMenuVisible: true,
-      ahtMenuVisible: true,
+      rightMenuVisible: computed(() => store.is_sensor_page),
+      ahtMenuVisible: computed(() => store.is_aht_page),
       mainFilter: ref('avg'),
       ahtOption: ref('temperature'),
       waitSpinner: computed(() => store.wait_spinner),
@@ -227,6 +224,9 @@ export default defineComponent({
     },
     triggerAhtOptions () {
       this.store.set_aht_option(this.ahtOption);
+    },
+    is_selected_menu: function(title) {
+      return this.store.is_selected_menu(title)
     },
   }
 })

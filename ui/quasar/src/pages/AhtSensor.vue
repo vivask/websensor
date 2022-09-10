@@ -7,6 +7,7 @@
         :rows="rows"
         :columns="columns"
         row-key="name"
+        :rows-per-page-options="[10, 50, 100, 0]"
       />
     </div>
   </q-page>
@@ -36,7 +37,7 @@ import { useAhtStore } from 'stores/aht';
       return {
         store,
         columns,
-        rows
+        rows,
       }
     },
     mounted (){
