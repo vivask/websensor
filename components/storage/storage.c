@@ -70,6 +70,21 @@ void remove_all_sensor_data(){
     }
 }
 
+bool aht_data_is_exist() {
+    struct stat st;
+    return (stat(AHT_FILE_NAME, &st) == 0);
+}
+
+bool ds18b20_data_is_exist() {
+    struct stat st;
+    return (stat(DS18B20_FILE_NAME, &st) == 0);
+}
+
+bool bmh280_data_is_exist() {
+    struct stat st;
+    return (stat(BMX280_FILE_NAME, &st) == 0);
+}
+
 esp_err_t insert_ds18b20(const ds18b20_data_t* data){
     FILE* f; 
     struct stat st;

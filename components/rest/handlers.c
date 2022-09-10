@@ -171,24 +171,51 @@ esp_err_t settings_info_get_handler(httpd_req_t *req){
     return ESP_OK;
 }
 
+time_t validate_begin_time(time_t begin){
+    return (hwclock_init && end_loging !=0 && begin > end_loging) ? end_loging-1 : begin;
+}
+
+time_t validate_end_time(time_t end){
+    return (hwclock_init && begin_loging != 0 && end < begin_loging) ? begin_loging+1 : end;
+}
+
 esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
     esp_err_t ret;
     char* buf = get_request_buffer(req, &ret);
     if( ret != ESP_OK ){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
     cJSON *root = cJSON_Parse(buf);
     char date_time[20];
-    sprintf(date_time, "%s %s", cJSON_GetObjectItem(root, "date")->valuestring, cJSON_GetObjectItem(root, "time")->valuestring);
-    cJSON_Delete(root);
+    sprintf(date_time, "%s %s", 
+        cJSON_GetObjectItem(root, "sys_date")->valuestring, 
+        cJSON_GetObjectItem(root, "sys_time")->valuestring);
     
+    ESP_LOGI(TAG, "Sys time: %s", date_time);
     struct tm tm = {0};
     strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
     time_t t = mktime(&tm);
     struct timeval now = { .tv_sec = t };
     settimeofday(&now, NULL);
     hwclock_init = true;
+
+    sprintf(date_time, "%s %s", 
+        cJSON_GetObjectItem(root, "begin_date")->valuestring, 
+        cJSON_GetObjectItem(root, "begin_time")->valuestring);
+    strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
+    begin_loging = mktime(&tm);
+    ESP_LOGI(TAG, "Begin time: %s", date_time);
+
+    sprintf(date_time, "%s %s", 
+        cJSON_GetObjectItem(root, "end_date")->valuestring, 
+        cJSON_GetObjectItem(root, "end_time")->valuestring);
+    strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
+    end_loging = mktime(&tm);
+    ESP_LOGI(TAG, "End time: %s", date_time);
+
+    cJSON_Delete(root);
 
     bool status = start_peripheral_devices();
     httpd_resp_set_type(req, "application/json");
@@ -203,18 +230,11 @@ esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
     return ESP_OK;    
 }
 
-time_t validate_begin_time(time_t begin){
-    return (hwclock_init && end_loging !=0 && begin > end_loging) ? end_loging-1 : begin;
-}
-
-time_t validate_end_time(time_t end){
-    return (hwclock_init && begin_loging != 0 && end < begin_loging) ? begin_loging+1 : end;
-}
-
 esp_err_t settings_begin_post_handler(httpd_req_t *req){
     esp_err_t ret;
     char* buf = get_request_buffer(req, &ret);
     if( ret != ESP_OK ){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
@@ -244,6 +264,7 @@ esp_err_t settings_end_post_handler(httpd_req_t *req){
     esp_err_t ret;
     char* buf = get_request_buffer(req, &ret);
     if( ret != ESP_OK ){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
@@ -270,11 +291,18 @@ esp_err_t settings_end_post_handler(httpd_req_t *req){
 }
 
 esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret=ESP_OK;
+
+    if(!ds18b20_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
+
 
     slect_params_t params;
     ret = get_select_params(&params, req, "/api/v1/ds18b20/read/all");
     if(ret != ESP_OK){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
@@ -283,6 +311,7 @@ esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
     ret = fetch_all_ds18b20(root, &params);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -295,13 +324,19 @@ esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req){
 }
 
 esp_err_t ds18b20_data_get_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!ds18b20_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_ds18b20(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -313,13 +348,19 @@ esp_err_t ds18b20_data_get_min_handler(httpd_req_t *req){
 }
 
 esp_err_t ds18b20_data_get_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!ds18b20_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_ds18b20(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -331,13 +372,19 @@ esp_err_t ds18b20_data_get_max_handler(httpd_req_t *req){
 }
 
 esp_err_t ds18b20_data_get_avg_handler(httpd_req_t *req){
-      esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!ds18b20_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_ds18b20(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -349,11 +396,17 @@ esp_err_t ds18b20_data_get_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret=ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     slect_params_t params;
     ret = get_select_params(&params, req, "/api/v1/bmx280/read/all");
     if(ret != ESP_OK){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
@@ -362,6 +415,7 @@ esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
     ret = fetch_all_bmx280(root, &params);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -373,13 +427,19 @@ esp_err_t bmx280_data_get_all_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_temperature_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_temperature_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -390,13 +450,19 @@ esp_err_t bmx280_data_get_temperature_min_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_temperature_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_temperature_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -407,13 +473,19 @@ esp_err_t bmx280_data_get_temperature_max_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_temperature_avg_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_temperature_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -424,13 +496,19 @@ esp_err_t bmx280_data_get_temperature_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_humidity_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_humidity_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -441,13 +519,19 @@ esp_err_t bmx280_data_get_humidity_min_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_humidity_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_humidity_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -458,13 +542,19 @@ esp_err_t bmx280_data_get_humidity_max_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_humidity_avg_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_humidity_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -475,13 +565,19 @@ esp_err_t bmx280_data_get_humidity_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_pressure_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_pressure_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -492,13 +588,19 @@ esp_err_t bmx280_data_get_pressure_min_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_pressure_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_pressure_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -509,13 +611,19 @@ esp_err_t bmx280_data_get_pressure_max_handler(httpd_req_t *req){
 }
 
 esp_err_t bmx280_data_get_pressure_avg_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!bmh280_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_pressure_bmx280(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -526,11 +634,17 @@ esp_err_t bmx280_data_get_pressure_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_all_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     slect_params_t params;
     ret = get_select_params(&params, req, "/api/v1/aht/read/all");
     if(ret != ESP_OK){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
         return ret;
     }
 
@@ -539,6 +653,7 @@ esp_err_t aht_data_get_all_handler(httpd_req_t *req){
     ret = fetch_all_aht(root, &params);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -550,13 +665,19 @@ esp_err_t aht_data_get_all_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_temperature_avg_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_temperature_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -568,13 +689,19 @@ esp_err_t aht_data_get_temperature_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_humidity_avg_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_avg_humidity_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -586,13 +713,19 @@ esp_err_t aht_data_get_humidity_avg_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_temperature_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_temperature_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -604,13 +737,19 @@ esp_err_t aht_data_get_temperature_min_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_humidity_min_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_min_humidity_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -622,13 +761,19 @@ esp_err_t aht_data_get_humidity_min_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_temperature_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_temperature_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);
@@ -640,13 +785,19 @@ esp_err_t aht_data_get_temperature_max_handler(httpd_req_t *req){
 }
 
 esp_err_t aht_data_get_humidity_max_handler(httpd_req_t *req){
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    if(!aht_data_is_exist()){
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not found data");
+        return ret;
+    }
 
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
     ret = fetch_max_humidity_aht(root, begin_loging, end_loging);
     if(ret != ESP_OK){
         cJSON_Delete(root);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Fetch data error");
         return ret;
     }
     const char *json = cJSON_Print(root);

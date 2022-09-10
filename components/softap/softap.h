@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 esp_err_t wifi_init_softap(void);
+//void wifi_init_softap(void);
 
 #ifdef __cplusplus
 }

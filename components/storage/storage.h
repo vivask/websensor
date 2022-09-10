@@ -48,6 +48,9 @@ typedef struct{
 
 esp_err_t init_fs(void);
 void remove_all_sensor_data();
+bool aht_data_is_exist();
+bool ds18b20_data_is_exist();
+bool bmh280_data_is_exist();
 esp_err_t insert_ds18b20(const ds18b20_data_t* data);
 esp_err_t insert_bmx280(const bmx280_data_t* data);
 esp_err_t insert_aht(const aht_data_t* data);

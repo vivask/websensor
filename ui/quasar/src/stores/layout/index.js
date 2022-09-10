@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useAhtStore } from 'stores/aht';
+import { useAhtStore } from 'src/stores/aht';
 
 export const useLayoutStore = defineStore('layout', {
   state: () => ({

@@ -9,18 +9,19 @@
 #include "sdkconfig.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+
 #include "storage.h"
 #include "softap.h"
 #include "rest.h"
 #include "peripheral.h"
+#include "dns_server.h"
 
-
-#define MDNS_INSTANCE "websensor"
 
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
 
+ 
     ESP_ERROR_CHECK(init_fs());
 
     ESP_ERROR_CHECK(wifi_init_softap());
@@ -28,4 +29,6 @@ void app_main(void)
     peripheral_initialize();
 
     ESP_ERROR_CHECK(start_rest_server(CONFIG_WEB_BASE_PATH));
+
+    start_dns_server();
 }

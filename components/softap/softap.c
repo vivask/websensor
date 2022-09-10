@@ -92,13 +92,14 @@ esp_err_t wifi_init_softap(void)
         .ap = {
             .ssid = WEB_WIFI_SSID,
             .ssid_len = strlen(WEB_WIFI_SSID),
-            .channel = WEB_WIFI_CHANNEL,
+            //.channel = WEB_WIFI_CHANNEL,
             .password = WEB_WIFI_PASS,
             .max_connection = WEB_MAX_STA_CONN,
             .authmode = WIFI_AUTH_WPA_WPA2_PSK
         },
     };
     if (strlen(WEB_WIFI_PASS) == 0) {
+        ESP_LOGW(TAG, "Soft AP password not set!");
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 
@@ -119,3 +120,38 @@ esp_err_t wifi_init_softap(void)
              WEB_WIFI_SSID, WEB_WIFI_PASS, WEB_WIFI_CHANNEL);
     return ESP_OK;
 }
+
+/*void wifi_init_softap(void){
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = WEB_WIFI_SSID,
+            .ssid_len = strlen(WEB_WIFI_SSID),
+            .password = WEB_WIFI_PASS,
+            .max_connection = WEB_MAX_STA_CONN,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK
+        },
+    };
+    if (strlen(WEB_WIFI_PASS) == 0) {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    esp_netif_ip_info_t ip_info;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"), &ip_info);
+
+    char ip_addr[16];
+    inet_ntoa_r(ip_info.ip.addr, ip_addr, 16);
+    ESP_LOGI(TAG, "Set up softAP with IP: %s", ip_addr);
+
+    ESP_LOGI(TAG, "wifi_init_softap finished. SSID:'%s' password:'%s'",
+             WEB_WIFI_SSID, WEB_WIFI_PASS);
+}*/

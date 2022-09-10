@@ -1,6 +1,5 @@
 <template>
-  <q-page padding>
-    <div class="q-pa-md">
+  <div class="q-pa-md container center">
       <q-table
         title="AHT25"
         dense
@@ -9,14 +8,13 @@
         row-key="name"
         :rows-per-page-options="[10, 50, 100, 0]"
       />
-    </div>
-  </q-page>
+  </div>
 </template>
 
 <script>
 
 import { computed } from 'vue'
-import { useAhtStore } from 'stores/aht';
+import { useAhtStore } from 'src/stores/aht';
 
   const columns = [
     {
@@ -45,3 +43,4 @@ import { useAhtStore } from 'stores/aht';
     }
   }
 </script>
+

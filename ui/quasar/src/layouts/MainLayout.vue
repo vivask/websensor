@@ -5,7 +5,7 @@
         <q-btn flat dense round icon="mdi-menu" class="q-mr-sm" @click="toggleLeftDrawer" />
         <q-toolbar-title>Websensor</q-toolbar-title>
 
-        <q-btn flat round dense icon="mdi-water-percent" v-if="ahtMenuVisible">
+        <q-btn flat round dense icon="mdi-apps" v-if="ahtMenuVisible">
           <q-menu>
             <q-list>
               <q-item tag="label" v-close-popup>
@@ -157,7 +157,7 @@
 
 <script>
 import { defineComponent, ref, computed } from 'vue'
-import { useLayoutStore } from 'stores/layout'
+import { useLayoutStore } from 'src/stores/layout'
 import WaitSpinner from 'components/WaitSpinner.vue';
 
 

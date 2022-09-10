@@ -1,7 +1,7 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
-import { useLayoutStore } from 'stores/layout'
+import { useLayoutStore } from 'src/stores/layout'
 
 /*
  * If not building with SSR mode, you can

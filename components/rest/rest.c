@@ -53,11 +53,12 @@ static esp_err_t set_content_type_from_file(httpd_req_t *req, const char *filepa
 /* Send HTTP response with the contents of the requested file */
 static esp_err_t rest_common_get_handler(httpd_req_t *req)
 {
+    const char captive[] = "/generate_204";
     char filepath[FILE_PATH_MAX];
-
+    ESP_LOGD(TAG, "URI : %s", req->uri);
     rest_server_context_t *rest_context = (rest_server_context_t *)req->user_ctx;
     strlcpy(filepath, rest_context->base_path, sizeof(filepath));
-    if (req->uri[strlen(req->uri) - 1] == '/') {
+    if (req->uri[strlen(req->uri) - 1] == '/' || strncmp(req->uri, captive, sizeof(captive)) == 0) {
         strlcat(filepath, "/index.html", sizeof(filepath));
     } else {
         strlcat(filepath, req->uri, sizeof(filepath));
@@ -100,7 +101,7 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-esp_err_t start_rest_server(const char *base_path)
+esp_err_t start_rest_server(const char *base_path) 
 {
     REST_CHECK(base_path, "wrong base path", err);
     rest_server_context_t *rest_context = calloc(1, sizeof(rest_server_context_t));
@@ -111,6 +112,8 @@ esp_err_t start_rest_server(const char *base_path)
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers = 27;
     config.uri_match_fn = httpd_uri_match_wildcard;
+    config.lru_purge_enable = true;
+    config.max_open_sockets = 5;
 
     ESP_LOGI(TAG, "Starting HTTP Server");
     REST_CHECK(httpd_start(&server, &config) == ESP_OK, "Start server failed", err_start);

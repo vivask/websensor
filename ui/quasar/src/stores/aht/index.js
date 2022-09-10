@@ -1,15 +1,12 @@
 import { defineStore } from 'pinia';
-import { useLayoutStore } from 'stores/layout';
+import { useLayoutStore } from 'src/stores/layout';
 import axios from 'axios'
 
 export const useAhtStore = defineStore('aht', {
 
   state: () => ({
     store: useLayoutStore(),
-    items_array: [
-      {'date_time': '2022-09-08 10:00:00', 'temperature': 20.0, 'humidity': 43.0},
-      {'date_time': '2022-09-08 10:00:05', 'temperature': 20.5, 'humidity': 43.5}
-    ],
+    items_array: [],
   }),
 
   getters: {
