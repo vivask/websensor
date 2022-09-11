@@ -13,7 +13,6 @@
         filled
         v-model="sys_date"
         type="date"
-        lazy-rules
         :rules="[ val => val && val.length > 0 || 'Please type something']"
       />
       </div>
@@ -22,7 +21,6 @@
         filled
         type="time"
         v-model="sys_time"
-        lazy-rules
         step="2"
         :rules="[ val => val && val.length > 0 || 'Please type something']"
       />
@@ -35,7 +33,6 @@
         filled
         v-model="begin_date"
         type="date"
-        lazy-rules
         :rules="[ val => val && val.length > 0 || 'Please type something']"
       />
       </div>
@@ -44,7 +41,6 @@
         filled
         type="time"
         v-model="begin_time"
-        lazy-rules
         step="2"
         :rules="[ val => val && val.length > 0 || 'Please type something']"
       />
@@ -74,7 +70,7 @@
     </div>
 
       <div>
-        <q-btn label="Submit" type="submit" color="primary"/>
+        <q-btn label="Submit" type="submit" color="primary" />
         <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
       </div>
     </q-form>
@@ -85,17 +81,20 @@
 <script>
 import { ref } from 'vue'
 import axios from 'axios'
+import { useLayoutStore } from 'src/stores/layout'
+import { useSetStore } from 'src/stores/set'
 
 
 export default {
   setup () {
+    const store = useSetStore()
 
-    const sys_date = ref(null)
-    const sys_time = ref(null)
-    const begin_date = ref(null)
-    const begin_time = ref(null)
-    const end_date = ref(null)
-    const end_time = ref(null)
+    const sys_date = ref('2022-09-11')
+    const sys_time = ref('10:00:00')
+    const begin_date = ref('2022-09-11')
+    const begin_time = ref('10:00:02')
+    const end_date  = ref('2022-09-11')
+    const end_time = ref('10:10:00')
 
     return {
       sys_date,
@@ -104,23 +103,6 @@ export default {
       begin_time,
       end_date,
       end_time,
-
-      onSubmit () {
-        axios.post("/api/v1/settings/hwclock", {
-            sys_date: sys_date.value,
-            sys_time: sys_time.value,
-            begin_date: begin_date.value,
-            begin_time: begin_time.value,
-            end_date: end_date.value,
-            end_time: end_time.value
-            })
-            .then(data => {
-              console.log(data);
-            })
-            .catch(error => {
-              console.log(error);
-            });
-      },
 
       onReset () {
         sys_date.value = null
@@ -132,19 +114,41 @@ export default {
       }
     }
   },
-  mounted(){
+  mounted () {
     axios.get("/api/v1/settings/info")
         .then(response => {
-          this.sys_date = response.data.sys_date
-          this.sys_time = response.data.sys_time
-          this.begin_date = response.data.begin_date
-          this.begin_time = response.data.begin_time
-          this.end_date = response.data.end_date
-          this.end_time = response.data.end_time
+          if(response.data.sys_date.length > 0){
+            this.sys_date = response.data.sys_date
+            this.sys_time = response.data.sys_time
+            this.begin_date = response.data.begin_date
+            this.begin_time = response.data.begin_time
+            this.end_date = response.data.end_date
+            this.end_time = response.data.end_time
+          }
         })
         .catch(error => {
           console.log(error);
         });
+  },
+  methods: {
+    onSubmit () {
+      axios.post("/api/v1/settings/hwclock", {
+            sys_date: this.sys_date,
+            sys_time: this.sys_time,
+            begin_date: this.begin_date,
+            begin_time: this.begin_time,
+            end_date: this.end_date,
+            end_time: this.end_time
+            })
+            .then(response => {
+              console.log(response.data.message)
+              const path = useLayoutStore().get_first_available_page
+              this.$router.push({ path: path })
+            })
+            .catch(error => {
+              console.log(error)
+            });
+    }
   }
 }
 </script>

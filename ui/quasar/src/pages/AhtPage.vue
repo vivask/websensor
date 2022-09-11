@@ -14,7 +14,7 @@
 <script>
 
 import { computed } from 'vue'
-import { useAhtStore } from 'src/stores/aht';
+import { useAhtStore } from 'src/stores/aht'
 
   const columns = [
     {
@@ -25,8 +25,21 @@ import { useAhtStore } from 'src/stores/aht';
       field: 'date_time',
       sortable: true
     },
-    { name: 'temperature', align: 'center', label: 'Temperature (°C)', field: 'temperature', sortable: true },
-    { name: 'humidity', label: 'Humidity (%)', field: 'humidity', sortable: true },
+    {
+      name: 'temperature',
+      align: 'center',
+      label: 'Temperature (°C)',
+      field: 'temperature',
+      format: val => parseFloat(val).toFixed(1),
+      sortable: true
+    },
+    {
+      name: 'humidity',
+      label: 'Humidity (%)',
+      field: 'humidity',
+      format: val => parseFloat(val).toFixed(1),
+      sortable: true
+    },
   ]
   export default {
     setup () {

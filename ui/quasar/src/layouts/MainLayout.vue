@@ -159,7 +159,7 @@
 import { defineComponent, ref, computed } from 'vue'
 import { useLayoutStore } from 'src/stores/layout'
 import WaitSpinner from 'components/WaitSpinner.vue';
-
+import axios from 'axios'
 
 
 const linksList = [
@@ -170,27 +170,9 @@ const linksList = [
     link: '#/',
     separator: true
   },
-  {
-    title: 'Ds18b20',
-    icon: 'mdi-thermometer',
-    color: 'blue',
-    link: '#/ds18b20',
-    separator: false
-  },
-  {
-    title: 'Bmx280',
-    icon: 'mdi-gauge',
-    color: 'blue',
-    link: '#/bmx280',
-    separator: false
-  },
-  {
-    title: 'Aht',
-    icon: 'mdi-water-percent',
-    color: 'blue',
-    link: '#/aht',
-    separator: false
-  }
+  //{ title: 'Aht', icon: 'mdi-water-percent', color: "blue", link: '#/aht', separator: false },
+  //{ title: 'Ds18b20', icon: 'mdi-thermometer', color: "blue", link: '#/ds18b20', separator: false },
+  //{ title: 'Bmx280', icon: 'mdi-gauge', color: "blue", link: '#/bmx280', separator: false }
 ]
 
 
@@ -204,6 +186,8 @@ export default defineComponent({
   setup () {
     const store = useLayoutStore()
     const leftDrawerOpen = ref(false)
+    const mainFilter = ref('avg')
+    const ahtOption = ref('temperature')
     return {
       store,
       menuList: linksList,
@@ -213,21 +197,43 @@ export default defineComponent({
       },
       rightMenuVisible: computed(() => store.is_sensor_page),
       ahtMenuVisible: computed(() => store.is_aht_page),
-      mainFilter: ref('avg'),
-      ahtOption: ref('temperature'),
+      mainFilter,
+      ahtOption,
       waitSpinner: computed(() => store.wait_spinner),
+      triggerMainOptions () {
+        store.set_filter(mainFilter);
+      },
+      triggerAhtOptions () {
+        store.set_aht_option(ahtOption);
+      },
+      is_selected_menu: function(title) {
+        return store.is_selected_menu(title)
+      },
     }
   },
-  methods: {
-    triggerMainOptions () {
-      this.store.set_filter(this.mainFilter);
-    },
-    triggerAhtOptions () {
-      this.store.set_aht_option(this.ahtOption);
-    },
-    is_selected_menu: function(title) {
-      return this.store.is_selected_menu(title)
-    },
+  mounted () {
+    axios.get("/api/v1/settings/info")
+        .then(response => {
+          if(response.data.aht_available){
+            this.store.set_aht_available(true)
+            this.menuList.push({ title: 'Aht', icon: 'mdi-water-percent', color: "blue", link: '#/aht', separator: false });
+          }
+          if(response.data.ds18b20_available){
+            this.store.set_ds18b20_available(true)
+            this.menuList.push({ title: 'Ds18b20', icon: 'mdi-thermometer', color: "blue", link: '#/ds18b20', separator: false });
+          }
+          if(response.data.bmx280_available){
+            this.store.set_bmx280_available(true)
+            this.menuList.push({ title: 'Bmx280', icon: 'mdi-gauge', color: "blue", link: '#/bmx280', separator: false });
+          }
+          if(response.data.sys_date.length > 0){
+            const path = this.store.get_first_available_page
+            this.$router.push({ path: path })
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
   }
 })
 </script>

@@ -3,8 +3,8 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/SetPeriod.vue') },
-      { path: 'aht', component: () => import('pages/AhtSensor.vue') }
+      { path: '', component: () => import('pages/SetPage.vue') },
+      { path: 'aht', component: () => import('pages/AhtPage.vue') }
     ]
   },
 

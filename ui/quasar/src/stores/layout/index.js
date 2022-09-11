@@ -1,6 +1,7 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { useAhtStore } from 'src/stores/aht';
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { useAhtStore } from 'src/stores/aht'
+import { useRoute } from 'vue-router'
 
 export const useLayoutStore = defineStore('layout', {
   state: () => ({
@@ -13,6 +14,9 @@ export const useLayoutStore = defineStore('layout', {
     is_aht_page: false,
     is_ds18b20_page: false,
     is_bmx280_page: false,
+    aht_is_available: false,
+    ds18b20_is_available: false,
+    bmx280_is_available: false,
   }),
 
   getters: {
@@ -28,6 +32,18 @@ export const useLayoutStore = defineStore('layout', {
     get_current_path () {
       return this.current_path
     },
+    get_first_available_page() {
+      if (this.aht_is_available) {
+        return '/aht'
+      }
+      if (this.ds18b20_is_available) {
+        return '/ds18b20'
+      }
+      if (this.ds18b20_is_available) {
+        return '/bmx280'
+      }
+      return '/'
+    }
   },
 
   actions: {
@@ -109,6 +125,15 @@ export const useLayoutStore = defineStore('layout', {
           break
       }
       return result
+    },
+    set_aht_available (new_value) {
+      this.aht_is_available = new_value;
+    },
+    set_ds18b20_available (new_value) {
+      this.ds18b20_is_available = new_value;
+    },
+    set_bmx280_available (new_value) {
+      this.bmx280_available = new_value;
     },
   },
 
