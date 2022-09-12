@@ -5,39 +5,6 @@
         <q-btn flat dense round icon="mdi-menu" class="q-mr-sm" @click="toggleLeftDrawer" />
         <q-toolbar-title>Websensor</q-toolbar-title>
 
-        <q-btn flat round dense icon="mdi-apps" v-if="ahtMenuVisible">
-          <q-menu>
-            <q-list>
-              <q-item tag="label" v-close-popup>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="ahtOption"
-                  val="temperature"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerAhtOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Temperature</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item tag="label" v-close-popup>
-                <q-item-section avatar>
-                  <q-radio
-                  v-model="ahtOption"
-                  val="humidity"
-                  checked-icon="task_alt"
-                  unchecked-icon="panorama_fish_eye"
-                  @click="triggerAhtOptions" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Humidity</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-
         <q-btn flat round dense icon="mdi-dots-vertical" v-if="rightMenuVisible" >
           <q-menu>
             <q-list>
@@ -108,34 +75,68 @@
       class="bg-grey-3"
     >
 
-      <q-scroll-area class="fit">
       <q-list>
-        <q-item-label
-          header
+        <q-item-label header >Menu</q-item-label>
+
+        <q-item
+        active-class="menu-item"
+        clickable
+        v-close-popup
+        href="#/"
+        :active="activeSettings"
+        @click="setMenu('Settings', '')"
         >
-          Menu
-        </q-item-label>
-
-            <template v-for="(menuItem, index) in menuList" :key="index">
-              <q-item
-              clickable
-              :active="is_selected_menu(menuItem.title)"
-              v-ripple
-              :href="menuItem.link"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="menuItem.icon" :color="menuItem.color" />
-                </q-item-section>
-                <q-item-section>
-                  {{ menuItem.title }}
-                </q-item-section>
-              </q-item>
-              <q-separator :key="'sep' + index" v-if="menuItem.separator" />
-            </template>
-
+          <q-item-section side>
+            <q-icon name="mdi-cog" color="blue"/>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Settings</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
-    </q-scroll-area>
 
+      <q-expansion-item>
+        <template v-slot:header>
+          <q-item-section avatar>
+            <q-icon color="blue" name="sensors" />
+          </q-item-section>
+          <q-item-section>
+            AHT25
+          </q-item-section>
+        </template>
+        <q-list>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeAhtTemperature"
+          :href="getRef('aht', 'temperature')"
+          @click="setMenu('AHT25', 'temperature')"
+          >
+            <q-item-section>
+              <q-item-label>Temperature</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="mdi-thermometer" />
+              </q-item-section>
+          </q-item>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeAhtHumidity"
+          :href="getRef('aht', 'humidity')"
+          @click="setMenu('AHT25', 'humidity')"
+          >
+            <q-item-section>
+              <q-item-label>Humidity</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="mdi-water-percent" />
+              </q-item-section>
+          </q-item>
+        </q-list>
+      </q-expansion-item>
 
     </q-drawer>
     <q-footer elevated>
@@ -167,20 +168,6 @@ import WaitSpinner from 'components/WaitSpinner.vue';
 import axios from 'axios'
 
 
-const linksList = [
-  {
-    title: 'Settings',
-    icon: 'mdi-cog',
-    color: 'blue',
-    link: '#/',
-    separator: true
-  },
-  //{ title: 'Aht', icon: 'mdi-water-percent', color: "blue", link: '#/aht', separator: false },
-  //{ title: 'Ds18b20', icon: 'mdi-thermometer', color: "blue", link: '#/ds18b20', separator: false },
-  //{ title: 'Bmx280', icon: 'mdi-gauge', color: "blue", link: '#/bmx280', separator: false }
-]
-
-
 export default defineComponent({
   name: 'MainLayout',
 
@@ -192,53 +179,62 @@ export default defineComponent({
     const store = useLayoutStore()
     const leftDrawerOpen = ref(false)
     const mainFilter = ref('avg')
-    const ahtOption = ref('temperature')
     const timer = ref(null)
 
     return {
       store,
-      menuList: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
       },
       rightMenuVisible: computed(() => store.is_sensor_page),
-      ahtMenuVisible: computed(() => store.is_aht_page),
       mainFilter,
-      ahtOption,
+      ahtActive: computed(() => store.aht_is_available),
+      ds18b20Active: computed(() => store.ds18b20_is_available),
+      bmx280Active: computed(() => store.bmx280_is_available),
       waitSpinner: computed(() => store.wait_spinner),
+      activeSettings: computed(() => store.is_active_settings),
+      activeAhtHumidity: computed(() => store.is_active_ath_humidity),
+      activeAhtTemperature: computed(() => store.is_active_ath_temperature),
+
       triggerMainOptions () {
-        store.set_filter(mainFilter);
-      },
-      triggerAhtOptions () {
-        store.set_aht_option(ahtOption);
-      },
-      is_selected_menu: function(title) {
-        return store.is_selected_menu(title)
+        store.set_filter(mainFilter)
       },
       isActivePeripheral: computed(() => store.get_peripheral_status),
       timer,
+      setMenu(menu, submenu) {
+        store.set_selected_menu(menu)
+        store.set_selected_submenu(submenu)
+        if(menu != 'Settings'){
+          store.set_filter(mainFilter)
+        }
+      },
+      isActiveMenu(menu, submenu) {
+        return this.store.get_selected_menu == (menu+submenu)
+      },
+      getRef(base, option) {
+        const ref = "#/"+base+"?opt="+option+"&filter="+store.get_filter
+        //console.log(ref)
+        return ref
+      }
     }
   },
   methods: {
     update_peripheral_status: function() {
       this.store.update_peripheral_status()
-    }
+    },
   },
   mounted () {
     axios.get("/api/v1/settings/info")
         .then(response => {
           if(response.data.aht_available){
             this.store.set_aht_available(true)
-            this.menuList.push({ title: 'Aht', icon: 'mdi-water-percent', color: "blue", link: '#/aht', separator: false });
           }
           if(response.data.ds18b20_available){
             this.store.set_ds18b20_available(true)
-            this.menuList.push({ title: 'Ds18b20', icon: 'mdi-thermometer', color: "blue", link: '#/ds18b20', separator: false });
           }
           if(response.data.bmx280_available){
             this.store.set_bmx280_available(true)
-            this.menuList.push({ title: 'Bmx280', icon: 'mdi-gauge', color: "blue", link: '#/bmx280', separator: false });
           }
           if( this.store.get_first_available_page != '/' ) {
             clearInterval(this.timer)
@@ -248,7 +244,6 @@ export default defineComponent({
         .catch(error => {
           console.log(error);
         });
-
   },
 })
 </script>

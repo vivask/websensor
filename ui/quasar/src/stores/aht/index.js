@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useLayoutStore } from 'src/stores/layout';
 import axios from 'axios'
+import { ref } from 'vue';
 
 export const useAhtStore = defineStore('aht', {
 
@@ -10,16 +11,15 @@ export const useAhtStore = defineStore('aht', {
   }),
 
   getters: {
-    get_items_array() {
+    get_items_array () {
       return this.items_array
-    }
+    },
   },
 
   actions: {
     update_items_array() {
       const filter = this.store.get_filter;
-      const option = this.store.get_aht_option;
-      var uri = "/api/v1/aht/read/" + option + "/" + filter;
+      var uri = "/api/v1/aht/read/" + this.store.selected_submenu + "/" + filter;
       if(filter == 'all'){
         //"count items on page:page num"
         uri = "/api/v1/aht/read/" + filter + "/100:1";

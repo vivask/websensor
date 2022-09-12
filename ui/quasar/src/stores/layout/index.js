@@ -6,9 +6,9 @@ import axios from 'axios'
 export const useLayoutStore = defineStore('layout', {
   state: () => ({
     filter: ref('avg'),
-    aht_option: ref('temperature'),
-    bmx280_option: ref('temperature'),
-    current_path: '/',
+    current_path: ref('/'),
+    selected_menu: ref('Settings'),
+    selected_submenu: ref(''),
     wait_spinner: false,
     is_sensor_page: false,
     is_aht_page: false,
@@ -24,24 +24,27 @@ export const useLayoutStore = defineStore('layout', {
     get_filter () {
       return this.filter
     },
-    get_aht_option () {
-      return this.aht_option
+    is_active_settings () {
+      return (this.selected_menu+this.selected_submenu) == ('Settings')
     },
-    get_bmx280_option () {
-      return this.bmx280_option
+    is_active_ath_humidity () {
+      return (this.selected_menu+this.selected_submenu) == ('AHT25'+'humidity')
     },
-    get_current_path () {
-      return this.current_path
+    is_active_ath_temperature () {
+      return (this.selected_menu+this.selected_submenu) == ('AHT25'+'temperature')
+    },
+    get_selected_menu () {
+      return (this.selected_menu+this.selected_submenu)
     },
     get_first_available_page () {
       if (this.aht_is_available) {
-        return '/aht'
+        return '#/aht?opt=temperature'
       }
       if (this.ds18b20_is_available) {
-        return '/ds18b20'
+        return '#/ds18b20'
       }
       if (this.ds18b20_is_available) {
-        return '/bmx280'
+        return '#/bmx280?opt=temperature'
       }
       return '/'
     },
@@ -55,15 +58,8 @@ export const useLayoutStore = defineStore('layout', {
       this.filter = new_value
       this.load_data()
     },
-    set_bmx280_option(new_value){
-      this.bmx280_option = new_value
-      this.load_data()
-    },
-    set_aht_option(new_value){
-      this.aht_option = new_value
-      this.load_data()
-    },
-    set_current_path(new_value) {
+    set_current_path(new_value){
+      //console.log("Current path: ", new_value)
       this.current_path = new_value
       switch(new_value){
         case '/':
@@ -92,7 +88,14 @@ export const useLayoutStore = defineStore('layout', {
           break
       }
     },
+    set_selected_menu(new_value){
+      this.selected_menu = new_value
+    },
+    set_selected_submenu(new_value){
+      this.selected_submenu = new_value
+    },
     load_data () {
+      //console.log("CURRENT PATH: ",this.current_path)
       switch(this.current_path){
         case '/':
           break
@@ -111,24 +114,6 @@ export const useLayoutStore = defineStore('layout', {
     },
     wait_spinner_hide () {
       this.wait_spinner = false;
-    },
-    is_selected_menu (title) {
-      var result = false
-      switch(title){
-        case 'Settings':
-          result = (this.current_path == '/')
-          break
-        case 'Ds18b20':
-          result = (this.current_path == '/ds18b20')
-          break
-        case 'Bmx280':
-          result = (this.current_path == '/bmx280')
-          break
-        case 'Aht':
-          result = (this.current_path == '/aht')
-          break
-      }
-      return result
     },
     set_aht_available (new_value) {
       this.aht_is_available = new_value

@@ -15,6 +15,7 @@
 
 import { computed } from 'vue'
 import { useAhtStore } from 'src/stores/aht'
+import { useLayoutStore } from 'src/stores/layout'
 
   const columns = [
     {
@@ -52,7 +53,11 @@ import { useAhtStore } from 'src/stores/aht'
       }
     },
     mounted (){
-      this.store.update_items_array();
+      const store = useLayoutStore()
+      //console.log("Filter: ", this.$route.query.filter)
+      //console.log("Option: ", this.$route.query.opt)
+      store.set_selected_submenu(this.$route.query.opt)
+      store.set_filter(this.$route.query.filter)
     }
   }
 </script>

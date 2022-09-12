@@ -147,9 +147,10 @@ export default {
                 console.log(response.data.message)
                 layout.wait_spinner_hide()
                 const path = layout.get_first_available_page
+                //console.log(path)
                 this.$router.push({ path: path })
               },
-              6000)
+              2000)
             })
             .catch(error => {
              layout.wait_spinner_hide()

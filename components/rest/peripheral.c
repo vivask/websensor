@@ -86,8 +86,8 @@ void peripheral_initialize(){
     time_t begin, end;
     remove_all_sensor_data();
     test_generate_data_aht(750, &begin, &end);
-    test_generate_data_bmx280(75, &begin, &end);
-    test_generate_data_ds18b20(2750, &begin, &end);
+    //test_generate_data_bmx280(75, &begin, &end);
+    //test_generate_data_ds18b20(2750, &begin, &end);
     test_settings_set(begin, end);
 #else
     remove_all_sensor_data();
