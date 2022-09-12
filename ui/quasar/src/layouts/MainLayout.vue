@@ -138,7 +138,12 @@
 
 
     </q-drawer>
-
+    <q-footer elevated>
+        <q-toolbar>
+          <q-toolbar-title>&copy; VIVASK. All rights reserved.</q-toolbar-title>
+          <q-spinner-bars color="primary" size="2em" v-if="isActivePeripheral"/>
+        </q-toolbar>
+    </q-footer>
 
     <q-page-container>
       <router-view />
@@ -188,6 +193,8 @@ export default defineComponent({
     const leftDrawerOpen = ref(false)
     const mainFilter = ref('avg')
     const ahtOption = ref('temperature')
+    const timer = ref(null)
+
     return {
       store,
       menuList: linksList,
@@ -209,6 +216,13 @@ export default defineComponent({
       is_selected_menu: function(title) {
         return store.is_selected_menu(title)
       },
+      isActivePeripheral: computed(() => store.get_peripheral_status),
+      timer,
+    }
+  },
+  methods: {
+    update_peripheral_status: function() {
+      this.store.update_peripheral_status()
     }
   },
   mounted () {
@@ -226,14 +240,15 @@ export default defineComponent({
             this.store.set_bmx280_available(true)
             this.menuList.push({ title: 'Bmx280', icon: 'mdi-gauge', color: "blue", link: '#/bmx280', separator: false });
           }
-          if(response.data.sys_date.length > 0){
-            const path = this.store.get_first_available_page
-            this.$router.push({ path: path })
+          if( this.store.get_first_available_page != '/' ) {
+            clearInterval(this.timer)
+            this.timer = setInterval(this.update_peripheral_status, 1000)
           }
         })
         .catch(error => {
           console.log(error);
         });
-  }
+
+  },
 })
 </script>

@@ -230,63 +230,23 @@ esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
     return ESP_OK;    
 }
 
-esp_err_t settings_begin_post_handler(httpd_req_t *req){
-    esp_err_t ret;
-    char* buf = get_request_buffer(req, &ret);
-    if( ret != ESP_OK ){
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
-        return ret;
+esp_err_t get_peripheral_status_handler(httpd_req_t *req){
+    httpd_resp_set_type(req, "application/json");
+    cJSON *root = cJSON_CreateObject();
+
+    bool peripheral_is_active = false;
+    if(begin_loging != 0 && end_loging !=0){
+        time_t now = time(0);
+        localtime(&now);
+        peripheral_is_active = !(now < begin_loging || now > end_loging);
     }
 
-    cJSON *root = cJSON_Parse(buf);
-    char date_time[20];
-    sprintf(date_time, "%s %s", cJSON_GetObjectItem(root, "date")->valuestring, cJSON_GetObjectItem(root, "time")->valuestring);
+    cJSON_AddBoolToObject(root, "peripheral_is_active", peripheral_is_active);
+
+    const char *json = cJSON_Print(root);
+    httpd_resp_sendstr(req, json);
+    free((void *)json);
     cJSON_Delete(root);
-
-    struct tm tm = {0};   
-    strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
-    begin_loging = mktime(&tm);
-    
-    bool status = start_peripheral_devices();
-    httpd_resp_set_type(req, "application/json");
-    root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "message", "Begin loging setup success");
-    cJSON_AddBoolToObject(root, "status", status);
-    const char *json_string = cJSON_Print(root);
-    httpd_resp_sendstr(req, json_string);
-    free((void *)json_string);
-    cJSON_Delete(root);
-
-    return ESP_OK;    
-}
-
-esp_err_t settings_end_post_handler(httpd_req_t *req){
-    esp_err_t ret;
-    char* buf = get_request_buffer(req, &ret);
-    if( ret != ESP_OK ){
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Request data parse error");
-        return ret;
-    }
-
-    cJSON *root = cJSON_Parse(buf);
-    char date_time[20];
-    sprintf(date_time, "%s %s", cJSON_GetObjectItem(root, "date")->valuestring, cJSON_GetObjectItem(root, "time")->valuestring);
-    cJSON_Delete(root);
-
-    struct tm tm = {0};
-    strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
-    end_loging = mktime(&tm);
-    
-    bool status = start_peripheral_devices();
-    httpd_resp_set_type(req, "application/json");
-    root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "message", "End loging setup success");
-    cJSON_AddBoolToObject(root, "status", status);
-    const char *json_string = cJSON_Print(root);
-    httpd_resp_sendstr(req, json_string);
-    free((void *)json_string);
-    cJSON_Delete(root);
-
     return ESP_OK;    
 }
 

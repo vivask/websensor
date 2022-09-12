@@ -35,8 +35,7 @@ typedef struct rest_server_context {
 
 esp_err_t settings_info_get_handler(httpd_req_t *req);
 esp_err_t settings_hwclock_post_handler(httpd_req_t *req);
-esp_err_t settings_begin_post_handler(httpd_req_t *req);
-esp_err_t settings_end_post_handler(httpd_req_t *req);
+esp_err_t get_peripheral_status_handler(httpd_req_t *req);
 esp_err_t ds18b20_data_get_all_handler(httpd_req_t *req);
 esp_err_t ds18b20_data_get_min_handler(httpd_req_t *req);
 esp_err_t ds18b20_data_get_max_handler(httpd_req_t *req);

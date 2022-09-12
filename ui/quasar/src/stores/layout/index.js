@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAhtStore } from 'src/stores/aht'
-import { useRoute } from 'vue-router'
+import axios from 'axios'
 
 export const useLayoutStore = defineStore('layout', {
   state: () => ({
@@ -17,6 +17,7 @@ export const useLayoutStore = defineStore('layout', {
     aht_is_available: false,
     ds18b20_is_available: false,
     bmx280_is_available: false,
+    peripheral_status: false
   }),
 
   getters: {
@@ -32,7 +33,7 @@ export const useLayoutStore = defineStore('layout', {
     get_current_path () {
       return this.current_path
     },
-    get_first_available_page() {
+    get_first_available_page () {
       if (this.aht_is_available) {
         return '/aht'
       }
@@ -43,24 +44,27 @@ export const useLayoutStore = defineStore('layout', {
         return '/bmx280'
       }
       return '/'
+    },
+    get_peripheral_status () {
+      return this.peripheral_status
     }
   },
 
   actions: {
     set_filter(new_value) {
-      this.filter = new_value;
+      this.filter = new_value
       this.load_data()
     },
     set_bmx280_option(new_value){
-      this.bmx280_option = new_value;
+      this.bmx280_option = new_value
       this.load_data()
     },
     set_aht_option(new_value){
-      this.aht_option = new_value;
+      this.aht_option = new_value
       this.load_data()
     },
     set_current_path(new_value) {
-      this.current_path = new_value;
+      this.current_path = new_value
       switch(new_value){
         case '/':
           this.is_sensor_page = false
@@ -127,14 +131,22 @@ export const useLayoutStore = defineStore('layout', {
       return result
     },
     set_aht_available (new_value) {
-      this.aht_is_available = new_value;
+      this.aht_is_available = new_value
     },
     set_ds18b20_available (new_value) {
-      this.ds18b20_is_available = new_value;
+      this.ds18b20_is_available = new_value
     },
     set_bmx280_available (new_value) {
-      this.bmx280_available = new_value;
+      this.bmx280_available = new_value
     },
+    update_peripheral_status () {
+      axios.get("/api/v1/peripheral/info")
+          .then(response => {
+            this.peripheral_status = response.data.peripheral_is_active
+          })
+          .catch(error => {
+            console.log(error);
+          });
+    }
   },
-
 })

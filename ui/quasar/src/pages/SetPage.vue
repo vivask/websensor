@@ -132,6 +132,8 @@ export default {
   },
   methods: {
     onSubmit () {
+      const layout = useLayoutStore()
+      layout.wait_spinner_show()
       axios.post("/api/v1/settings/hwclock", {
             sys_date: this.sys_date,
             sys_time: this.sys_time,
@@ -141,14 +143,19 @@ export default {
             end_time: this.end_time
             })
             .then(response => {
-              console.log(response.data.message)
-              const path = useLayoutStore().get_first_available_page
-              this.$router.push({ path: path })
+              setTimeout(() => {
+                console.log(response.data.message)
+                layout.wait_spinner_hide()
+                const path = layout.get_first_available_page
+                this.$router.push({ path: path })
+              },
+              6000)
             })
             .catch(error => {
+             layout.wait_spinner_hide()
               console.log(error)
             });
-    }
+    },
   }
 }
 </script>

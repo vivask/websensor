@@ -136,23 +136,14 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &settings_hwclock_post_uri);
 
-    /* URI handler for setting begin loging time*/
-    httpd_uri_t settings_begin_post_uri = {
-        .uri = "/api/v1/settings/begin",
-        .method = HTTP_POST,
-        .handler = settings_begin_post_handler,
+    /* URI handler for peripheral status */
+    httpd_uri_t peripheral_info_get_uri = {
+        .uri = "/api/v1/peripheral/info",
+        .method = HTTP_GET,
+        .handler = get_peripheral_status_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &settings_begin_post_uri);
-
-    /* URI handler for setting end loging time*/
-    httpd_uri_t settings_end_post_uri = {
-        .uri = "/api/v1/settings/end",
-        .method = HTTP_POST,
-        .handler = settings_end_post_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &settings_end_post_uri); 
+    httpd_register_uri_handler(server, &peripheral_info_get_uri);
 
     /* URI handler for fetching ds18b20 all measurements */
     httpd_uri_t ds18b20_data_get_all_uri = {
