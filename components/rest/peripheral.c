@@ -25,8 +25,11 @@ static char DS18B20_ADDRESS[32] = {0};
 static aht_t aht_dev;
 
 static bool ds18b20_initialized = false;
+static bool ds18b20_active = false;
 static bool bmp280_initialized = false;
+static bool bmp280_active = false;
 static bool aht_initialized = false;
+static bool aht_active = false;
 
 static TaskHandle_t xTaskPool = NULL;
 
@@ -97,12 +100,14 @@ void peripheral_initialize(){
 
 static void pool_ds18b20() {
     if(!ds18b20_initialized || tBeginPool == 0 || tEndPool == 0){
+        ds18b20_active = false;
         return;
     }
 
     time_t now = time(0);
     localtime(&now);
     if( now < tBeginPool || now > tEndPool ){
+        ds18b20_active = false;
         return;
     }
 
@@ -110,21 +115,25 @@ static void pool_ds18b20() {
     esp_err_t err = ds18x20_measure_and_read_multi(DS18B20_GPIO, &ds18x20_addrs, 1, &data.temperature);
     if(err != ESP_OK){
         ESP_LOGE(TAG, "DS18B20: %s: No ack, sensor not connected...skip...", esp_err_to_name(err));
+        ds18b20_active = false;
     }else{
         ESP_LOGI(TAG, "Temperature: %.2f C", data.temperature);
         data.date_time = now;
         insert_ds18b20(&data);
+        ds18b20_active = true;
     }
 }
 
 static void pool_bmp280() {
     if(!bmp280_initialized || tBeginPool == 0 || tEndPool == 0){
+        bmp280_active = false;
         return;
     }
 
     time_t now = time(0);
     localtime(&now);
     if( now < tBeginPool || now > tEndPool ){
+        bmp280_active = false;
         return;
     }
 
@@ -133,21 +142,25 @@ static void pool_bmp280() {
     if (err != ESP_OK){
         ESP_LOGE(TAG, "%s: %s: No ack, bme280 not connected...skip...",
         (bmp280_dev.id == BME280_CHIP_ID) ? "BME280" : "BMP280", esp_err_to_name(err));
+        bmp280_active = false;
     }else {
         ESP_LOGI(TAG, "Pressure: %.2f Pa, Temperature: %.2f C, Humidity: %.2f ", data.pressure, data.temperature, data.humidity);
         data.date_time = now;
         insert_bmx280(&data);
+        bmp280_active = true;
     }
 }
 
 static void pool_aht(){
     if(!aht_initialized || tBeginPool == 0 || tEndPool == 0){
+        aht_active = false;
         return;
     }
 
     time_t now = time(0);
     localtime(&now);
     if( now < tBeginPool || now > tEndPool ){
+        aht_active = false;
         return;
     }
 
@@ -155,10 +168,12 @@ static void pool_aht(){
     esp_err_t err = aht_get_data(&aht_dev, &data.temperature, &data.humidity);
     if (err != ESP_OK){
         ESP_LOGE(TAG, "AHT: No ack, not connected, error: %s", esp_err_to_name(err));
+        aht_active = false;
     }else {
         ESP_LOGI(TAG, "Temperature: %.2f C, Humidity: %.2f ", data.temperature, data.humidity);
         data.date_time = now;
         insert_aht(&data);
+        aht_active = true;
     }
 }
 
@@ -205,4 +220,8 @@ bool bmx280_available() {
 
 bool aht_available() {
     return aht_initialized;
+}
+
+bool is_activity() {
+    return ds18b20_active || bmp280_active || aht_active;
 }

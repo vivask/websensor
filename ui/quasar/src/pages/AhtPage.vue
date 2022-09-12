@@ -54,10 +54,14 @@ import { useLayoutStore } from 'src/stores/layout'
     },
     mounted (){
       const store = useLayoutStore()
+      //console.log("Path: ", store.current_path)
       //console.log("Filter: ", this.$route.query.filter)
       //console.log("Option: ", this.$route.query.opt)
+      store.set_selected_menu('AHT25')
       store.set_selected_submenu(this.$route.query.opt)
       store.set_filter(this.$route.query.filter)
+      //console.log("Menu: ", store.selected_menu)
+      //console.log("Sub menu: ", store.selected_submenu)
     }
   }
 </script>

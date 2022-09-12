@@ -33,6 +33,18 @@ export const useLayoutStore = defineStore('layout', {
     is_active_ath_temperature () {
       return (this.selected_menu+this.selected_submenu) == ('AHT25'+'temperature')
     },
+    is_active_bmx280_temperature () {
+      return (this.selected_menu+this.selected_submenu) == ('BME280'+'temperature')
+    },
+    is_active_bmx280_humidity () {
+      return (this.selected_menu+this.selected_submenu) == ('BME280'+'humidity')
+    },
+    is_active_bmx280_pressusre () {
+      return (this.selected_menu+this.selected_submenu) == ('BME280'+'pressusre')
+    },
+    is_active_ds18b20 () {
+      return (this.selected_menu+this.selected_submenu) == ('DS18B20')
+    },
     get_selected_menu () {
       return (this.selected_menu+this.selected_submenu)
     },

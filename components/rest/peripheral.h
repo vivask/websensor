@@ -25,6 +25,7 @@ void peripheral_stop();
 bool ds18b20_available();
 bool bmx280_available();
 bool aht_available();
+bool is_activity();
 
 #ifdef __cplusplus
 }

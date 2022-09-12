@@ -234,12 +234,7 @@ esp_err_t get_peripheral_status_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
 
-    bool peripheral_is_active = false;
-    if(begin_loging != 0 && end_loging !=0){
-        time_t now = time(0);
-        localtime(&now);
-        peripheral_is_active = !(now < begin_loging || now > end_loging);
-    }
+    const bool peripheral_is_active = is_activity();
 
     cJSON_AddBoolToObject(root, "peripheral_is_active", peripheral_is_active);
 

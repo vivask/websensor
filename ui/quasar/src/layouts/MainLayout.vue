@@ -79,6 +79,7 @@
         <q-item-label header >Menu</q-item-label>
 
         <q-item
+        v-model="menuSettings"
         active-class="menu-item"
         clickable
         v-close-popup
@@ -90,12 +91,12 @@
             <q-icon name="mdi-cog" color="blue"/>
           </q-item-section>
           <q-item-section>
-            <q-item-label>Settings</q-item-label>
+            <q-item-label  class="ml-15">Settings</q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
 
-      <q-expansion-item>
+      <q-expansion-item default-opened>
         <template v-slot:header>
           <q-item-section avatar>
             <q-icon color="blue" name="sensors" />
@@ -113,7 +114,7 @@
           :href="getRef('aht', 'temperature')"
           @click="setMenu('AHT25', 'temperature')"
           >
-            <q-item-section>
+            <q-item-section class="ml-20">
               <q-item-label>Temperature</q-item-label>
             </q-item-section>
             <q-item-section side>
@@ -128,7 +129,7 @@
           :href="getRef('aht', 'humidity')"
           @click="setMenu('AHT25', 'humidity')"
           >
-            <q-item-section>
+            <q-item-section class="ml-20">
               <q-item-label>Humidity</q-item-label>
             </q-item-section>
             <q-item-section side>
@@ -137,6 +138,82 @@
           </q-item>
         </q-list>
       </q-expansion-item>
+
+      <q-expansion-item default-opened>
+        <template v-slot:header>
+          <q-item-section avatar>
+            <q-icon color="blue" name="sensors" />
+          </q-item-section>
+          <q-item-section>
+            BME280
+          </q-item-section>
+        </template>
+        <q-list>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeBmx280Temperature"
+          :href="getRef('bmx280', 'temperature')"
+          @click="setMenu('BME280', 'temperature')"
+          >
+            <q-item-section class="ml-20">
+              <q-item-label>Temperature</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="mdi-thermometer" />
+              </q-item-section>
+          </q-item>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeBmx280Humidity"
+          :href="getRef('bmx280', 'humidity')"
+          @click="setMenu('BME280', 'humidity')"
+          >
+            <q-item-section class="ml-20">
+              <q-item-label>Humidity</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="mdi-water-percent" />
+              </q-item-section>
+          </q-item>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeBmx280Pressure"
+          :href="getRef('bmx280', 'pressure')"
+          @click="setMenu('BME280', 'pressure')"
+          >
+            <q-item-section class="ml-20">
+              <q-item-label>Pressusre</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="tire_repair" />
+              </q-item-section>
+          </q-item>
+        </q-list>
+      </q-expansion-item>
+
+      <q-list>
+        <q-item
+        active-class="menu-item"
+        clickable
+        v-close-popup
+        :href="getRef('ds18b20')"
+        :active="activeDs18b20"
+        @click="setMenu('DS18B20', '')"
+        >
+          <q-item-section side>
+            <q-icon name="sensors" color="blue"/>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label  class="ml-15">DS18B20</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
 
     </q-drawer>
     <q-footer elevated>
@@ -178,6 +255,7 @@ export default defineComponent({
   setup () {
     const store = useLayoutStore()
     const leftDrawerOpen = ref(false)
+    const menuSettings = ref(false)
     const mainFilter = ref('avg')
     const timer = ref(null)
 
@@ -196,7 +274,11 @@ export default defineComponent({
       activeSettings: computed(() => store.is_active_settings),
       activeAhtHumidity: computed(() => store.is_active_ath_humidity),
       activeAhtTemperature: computed(() => store.is_active_ath_temperature),
-
+      activeBmx280Temperature: computed(() => store.is_active_bmx280_temperature),
+      activeBmx280Humidity: computed(() => store.is_active_bmx280_humidity),
+      activeBmx280Pressure: computed(() => store.is_active_bmx280_pressusre),
+      activeDs18b20: computed(() => store.is_active_ds18b20),
+      menuSettings,
       triggerMainOptions () {
         store.set_filter(mainFilter)
       },
@@ -213,9 +295,10 @@ export default defineComponent({
         return this.store.get_selected_menu == (menu+submenu)
       },
       getRef(base, option) {
-        const ref = "#/"+base+"?opt="+option+"&filter="+store.get_filter
-        //console.log(ref)
-        return ref
+        if (option != null){
+          return "#/"+base+"?opt="+option+"&filter="+store.get_filter
+        }
+        return "#/"+base+"?filter="+store.get_filter
       }
     }
   },
