@@ -59,9 +59,11 @@ In the `Example Configuration` menu:
 After the webpage design work has been finished, you should compile them by running following commands:
 
 ```bash
-cd websensor/ui/web
+cd websensor/ui/quasar
 npm install
-npm run build
+quasar build
+quasar build -m android
+
 ```
 
 After a while, you will see a `dist` directory which contains all the website files (e.g. html, js, css, images).
@@ -71,16 +73,6 @@ Run `idf.py -p PORT flash monitor` to build and flash the project..
 (To exit the serial monitor, type ``Ctrl-]``.)
 
 See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-# Create vue project
-
-vue create web
-Select Vue 2
-cd web
-vue add vuetify  
-vue add vuex
-npm install --save axios numeral vuex vue-js-modal
-npm remove @vue/cli-plugin-eslint
 
 # Create quasar project
 
@@ -110,6 +102,5 @@ npm remove @vue/cli-plugin-eslint
   cd quasar project
   quasar mode add cordova
   cd src-cordova
-  cordova platform add android@10 (in this case under version 10 android)
+  cordova platform add android@8 (in this case under version 8 android)
   cordova requirements
-
