@@ -197,23 +197,33 @@
         </q-list>
       </q-expansion-item>
 
-      <q-list>
-        <q-item
-        active-class="menu-item"
-        clickable
-        v-close-popup
-        :href="getRef('ds18b20')"
-        :active="activeDs18b20"
-        @click="setMenu('DS18B20', '')"
-        >
-          <q-item-section side>
-            <q-icon name="sensors" color="blue"/>
+      <q-expansion-item default-opened>
+        <template v-slot:header>
+          <q-item-section avatar>
+            <q-icon color="blue" name="sensors" />
           </q-item-section>
           <q-item-section>
-            <q-item-label  class="ml-15">DS18B20</q-item-label>
+            DS18B20
           </q-item-section>
-        </q-item>
-      </q-list>
+        </template>
+        <q-list>
+          <q-item
+          active-class="menu-item"
+          clickable
+          v-close-popup
+          :active="activeDs18b20Temperature"
+          :href="getRef('ds18b20', 'temperature')"
+          @click="setMenu('DS18B20', 'temperature')"
+          >
+            <q-item-section class="ml-20">
+              <q-item-label>Temperature</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+                <q-icon name="mdi-thermometer" />
+              </q-item-section>
+          </q-item>
+        </q-list>
+      </q-expansion-item>
 
     </q-drawer>
     <q-footer elevated>
@@ -277,7 +287,7 @@ export default defineComponent({
       activeBmx280Temperature: computed(() => store.is_active_bmx280_temperature),
       activeBmx280Humidity: computed(() => store.is_active_bmx280_humidity),
       activeBmx280Pressure: computed(() => store.is_active_bmx280_pressusre),
-      activeDs18b20: computed(() => store.is_active_ds18b20),
+      activeDs18b20Temperature: computed(() => store.is_active_ds18b20_temperature),
       menuSettings,
       triggerMainOptions () {
         store.set_filter(mainFilter)

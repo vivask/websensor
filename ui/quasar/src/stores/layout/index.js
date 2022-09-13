@@ -42,7 +42,7 @@ export const useLayoutStore = defineStore('layout', {
     is_active_bmx280_pressusre () {
       return (this.selected_menu+this.selected_submenu) == ('BME280'+'pressusre')
     },
-    is_active_ds18b20 () {
+    is_active_ds18b20_temperature () {
       return (this.selected_menu+this.selected_submenu) == ('DS18B20')
     },
     get_selected_menu () {
