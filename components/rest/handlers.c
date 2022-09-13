@@ -40,14 +40,11 @@ void test_settings_get(time_t* begin, time_t* end){
 }
 #endif
 
-static void get_date(char* buf, const time_t time){
-    struct tm* t = localtime(&time);  
-    sprintf(buf, "20%02d-%02d-%02d", t->tm_year - 100, t->tm_mon + 1, t->tm_mday); 
-}
-
 static void get_time(char* buf, const time_t time){
-    struct tm* t = localtime(&time);
-    sprintf(buf, "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
+    struct tm* t = localtime(&time);  
+    sprintf(buf, "20%02d-%02d-%02d %02d:%02d:%02d", 
+        t->tm_year - 100, t->tm_mon + 1, t->tm_mday
+        , t->tm_hour, t->tm_min, t->tm_sec); 
 }
 
 static int split (const char *txt, char delim, char ***tokens)
@@ -129,28 +126,22 @@ static bool start_peripheral_devices(){
 esp_err_t settings_info_get_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "application/json");
     cJSON *root = cJSON_CreateObject();
-    char sys_date[11] = {0}, sys_time[9] = {0};
-    char begin_date[11] = {0}, begin_time[9] = {0};
-    char end_date[11] = {0}, end_time[9] = {0};
+    char sys_time[20] = {0};
+    char begin_time[20] = {0};
+    char end_time[20] = {0};
     if(hwclock_init){
         time_t now;
         time(&now);
-        get_date(sys_date, now);
         get_time(sys_time, now);
     }
     if(begin_loging){
-        get_date(begin_date, begin_loging);
         get_time(begin_time, begin_loging);
     }
     if(end_loging){
-        get_date(end_date, end_loging);
         get_time(end_time, end_loging);
     }
-    cJSON_AddStringToObject(root, "sys_date", sys_date);
     cJSON_AddStringToObject(root, "sys_time", sys_time);
-    cJSON_AddStringToObject(root, "begin_date", begin_date);
     cJSON_AddStringToObject(root, "begin_time", begin_time);
-    cJSON_AddStringToObject(root, "end_date", end_date);
     cJSON_AddStringToObject(root, "end_time", end_time);
 #ifdef CONFIG_WEB_TEST_MODE    
     cJSON_AddBoolToObject(root, "ds18b20_available", true);
@@ -189,9 +180,7 @@ esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
 
     cJSON *root = cJSON_Parse(buf);
     char date_time[20];
-    sprintf(date_time, "%s %s", 
-        cJSON_GetObjectItem(root, "sys_date")->valuestring, 
-        cJSON_GetObjectItem(root, "sys_time")->valuestring);
+    sprintf(date_time, "%s", cJSON_GetObjectItem(root, "sys_time")->valuestring);
     
     ESP_LOGI(TAG, "Sys time: %s", date_time);
     struct tm tm = {0};
@@ -201,16 +190,12 @@ esp_err_t settings_hwclock_post_handler(httpd_req_t *req){
     settimeofday(&now, NULL);
     hwclock_init = true;
 
-    sprintf(date_time, "%s %s", 
-        cJSON_GetObjectItem(root, "begin_date")->valuestring, 
-        cJSON_GetObjectItem(root, "begin_time")->valuestring);
+    sprintf(date_time, "%s", cJSON_GetObjectItem(root, "begin_time")->valuestring);
     strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
     begin_loging = mktime(&tm);
     ESP_LOGI(TAG, "Begin time: %s", date_time);
 
-    sprintf(date_time, "%s %s", 
-        cJSON_GetObjectItem(root, "end_date")->valuestring, 
-        cJSON_GetObjectItem(root, "end_time")->valuestring);
+    sprintf(date_time, "%s", cJSON_GetObjectItem(root, "end_time")->valuestring);
     strptime(date_time, "%Y-%m-%d %H:%M:%S", &tm);
     end_loging = mktime(&tm);
     ESP_LOGI(TAG, "End time: %s", date_time);

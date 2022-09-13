@@ -212,11 +212,9 @@ bool ds18b20_available() {
     return ds18b20_initialized;
 }
 
-
 bool bmx280_available() {
     return bmp280_initialized;
 }
-
 
 bool aht_available() {
     return aht_initialized;

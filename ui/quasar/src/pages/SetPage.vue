@@ -7,71 +7,92 @@
       class="q-gutter-md"
     >
     <div class="row">
-      <div class="mt-20">System time: </div>
-      <div class="right date-field">
-      <q-input
-        dense
-        filled
-        v-model="sys_date"
-        type="date"
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
-      </div>
-      <div class="right time-field">
-      <q-input
-        dense
-        filled
-        type="time"
-        v-model="sys_time"
-        step="2"
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
-      </div>
-    </div>
-    <div class="row">
-      <div class="mt-20">Begin loging: </div>
-      <div class="right date-field">
-      <q-input
-        dense
-        filled
-        v-model="begin_date"
-        type="date"
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
-      </div>
-      <div class="right time-field">
-      <q-input
-        dense
-        filled
-        type="time"
-        v-model="begin_time"
-        step="2"
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
+      <div class="mt-25">System time: </div>
+      <div class="q-pa-md right" style="max-width: 300px">
+        <q-input filled v-model="sys_time">
+          <template v-slot:prepend>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-date v-model="sys_time" mask="YYYY-MM-DD HH:mm:ss">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+          <template v-slot:append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-time v-model="sys_time" mask="YYYY-MM-DD HH:mm:ss" format24h with-seconds>
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
       </div>
     </div>
+
     <div class="row">
-      <div class="mt-20">End loging: </div>
-      <div class="right date-field">
-      <q-input
-        dense
-        filled
-        v-model="end_date"
-        type="date"
-        lazy-rules
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
+      <div class="mt-25">Begin time: </div>
+      <div class="q-pa-md right" style="max-width: 300px">
+        <q-input filled v-model="begin_time">
+          <template v-slot:prepend>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-date v-model="begin_time" mask="YYYY-MM-DD HH:mm:ss">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+          <template v-slot:append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-time v-model="begin_time" mask="YYYY-MM-DD HH:mm:ss" format24h with-seconds>
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
       </div>
-      <div class="right time-field">
-      <q-input
-        dense
-        filled
-        type="time"
-        v-model="end_time"
-        lazy-rules
-        step="2"
-        :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />
+    </div>
+
+    <div class="row">
+      <div class="mt-25">End time: </div>
+      <div class="q-pa-md right" style="max-width: 300px">
+        <q-input filled v-model="end_time">
+          <template v-slot:prepend>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-date v-model="end_time" mask="YYYY-MM-DD HH:mm:ss">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+          <template v-slot:append>
+            <q-icon name="access_time" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-time v-model="end_time" mask="YYYY-MM-DD HH:mm:ss" format24h with-seconds>
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Close" color="primary" flat />
+                  </div>
+                </q-time>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
       </div>
     </div>
 
@@ -85,67 +106,53 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 import { useLayoutStore } from 'src/stores/layout'
-import { useSetStore } from 'src/stores/set'
-
+import { date } from 'quasar'
 
 export default {
   setup () {
-    const sys_date = ref('2022-09-11')
-    const sys_time = ref('10:00:00')
-    const begin_date = ref('2022-09-11')
-    const begin_time = ref('10:00:02')
-    const end_date  = ref('2022-09-11')
-    const end_time = ref('10:10:00')
+    const today = new Date()
+    const sys_time = ref(date.formatDate(today, 'YYYY-MM-DD HH:mm:ss'))
+    const begin = new Date(today.getTime() + 5*1000)
+    const begin_time = ref(date.formatDate(begin, 'YYYY-MM-DD HH:mm:ss'))
+    const end = new Date(today.getTime() + 24*60*60*1000)
+    const end_time  = ref(date.formatDate(end, 'YYYY-MM-DD HH:mm:ss'))
 
     return {
-      sys_date,
       sys_time,
-      begin_date,
       begin_time,
-      end_date,
       end_time,
 
       onReset () {
-        sys_date.value = null
         sys_time.value = null
-        begin_date.value = null
         begin_time.value = null
-        end_date.value = null
         end_time.value = null
       }
     }
   },
   mounted () {
-    this.sys_date = useSetStore().get_default_sys_date
-    /*axios.get("/api/v1/settings/info")
+    axios.get("/api/v1/settings/info")
         .then(response => {
-          if(response.data.sys_date.length > 0){
-            this.sys_date = response.data.sys_date
+          if(response.data.sys_time.length > 0){
             this.sys_time = response.data.sys_time
-            this.begin_date = response.data.begin_date
             this.begin_time = response.data.begin_time
-            this.end_date = response.data.end_date
             this.end_time = response.data.end_time
           }
         })
         .catch(error => {
           console.log(error);
-        });*/
+        });
   },
   methods: {
     onSubmit () {
       const layout = useLayoutStore()
       layout.gear_spinner_show()
       axios.post("/api/v1/settings/hwclock", {
-            sys_date: this.sys_date,
             sys_time: this.sys_time,
-            begin_date: this.begin_date,
             begin_time: this.begin_time,
-            end_date: this.end_date,
-            end_time: this.end_time
+            end_time: this.end_time,
             })
             .then(response => {
               setTimeout(() => {
@@ -153,7 +160,7 @@ export default {
                 layout.gear_spinner_hide()
                 const path = layout.get_first_available_page
                 //console.log(path)
-                this.$router.push({ path: path })
+                //this.$router.push({ path: path })
               },
               2000)
             })

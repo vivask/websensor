@@ -17,9 +17,9 @@ export const useLayoutStore = defineStore('layout', {
     is_aht_page: false,
     is_ds18b20_page: false,
     is_bmx280_page: false,
-    aht_is_available: false,
-    ds18b20_is_available: false,
-    bmx280_is_available: false,
+    aht_is_available: true,
+    ds18b20_is_available: true,
+    bmx280_is_available: true,
     peripheral_status: false
   }),
 
@@ -144,7 +144,7 @@ export const useLayoutStore = defineStore('layout', {
       this.ds18b20_is_available = new_value
     },
     set_bmx280_available (new_value) {
-      this.bmx280_available = new_value
+      this.bmx280_is_available = new_value
     },
     update_peripheral_status () {
       axios.get("/api/v1/peripheral/info")

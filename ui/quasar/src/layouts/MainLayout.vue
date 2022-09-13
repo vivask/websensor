@@ -96,7 +96,7 @@
         </q-item>
       </q-list>
 
-      <q-expansion-item default-opened>
+      <q-expansion-item default-opened v-if="ahtActive">
         <template v-slot:header>
           <q-item-section avatar>
             <q-icon color="blue" name="sensors" />
@@ -139,7 +139,7 @@
         </q-list>
       </q-expansion-item>
 
-      <q-expansion-item default-opened>
+      <q-expansion-item default-opened v-if="bmx280Active">
         <template v-slot:header>
           <q-item-section avatar>
             <q-icon color="blue" name="sensors" />
@@ -197,7 +197,7 @@
         </q-list>
       </q-expansion-item>
 
-      <q-expansion-item default-opened>
+      <q-expansion-item default-opened v-if="ds18b20Active">
         <template v-slot:header>
           <q-item-section avatar>
             <q-icon color="blue" name="sensors" />
@@ -228,8 +228,8 @@
     </q-drawer>
     <q-footer elevated>
         <q-toolbar>
-          <q-toolbar-title>&copy; VIVASK. All rights reserved.</q-toolbar-title>
           <q-spinner-bars color="primary" size="2em" v-if="isActivePeripheral"/>
+          <q-toolbar-title>&copy; VIVASK. All rights reserved.</q-toolbar-title>
         </q-toolbar>
     </q-footer>
 
@@ -331,14 +331,14 @@ export default defineComponent({
   mounted () {
     axios.get("/api/v1/settings/info")
         .then(response => {
-          if(response.data.aht_available){
-            this.store.set_aht_available(true)
+          if( !response.data.aht_available ){
+            this.store.set_aht_available(false)
           }
-          if(response.data.ds18b20_available){
-            this.store.set_ds18b20_available(true)
+          if( !response.data.ds18b20_available ){
+            this.store.set_ds18b20_available(false)
           }
-          if(response.data.bmx280_available){
-            this.store.set_bmx280_available(true)
+          if( !response.data.bmx280_available ){
+            this.store.set_bmx280_available(false)
           }
           if( this.store.get_first_available_page != '/' ) {
             clearInterval(this.timer)
