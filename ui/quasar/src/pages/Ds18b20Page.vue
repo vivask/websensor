@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md container inner">
       <q-table
-        title="AHT25"
+        title="DS18B20"
         dense
         :rows="rows"
         :columns="columns"
@@ -14,7 +14,7 @@
 <script>
 
 import { computed } from 'vue'
-import { useAhtStore } from 'src/stores/aht'
+import { useDs18b20Store } from 'src/stores/ds18b20'
 import { useLayoutStore } from 'src/stores/layout'
 
   const columns = [
@@ -34,18 +34,11 @@ import { useLayoutStore } from 'src/stores/layout'
       format: val => parseFloat(val).toFixed(1),
       sortable: true
     },
-    {
-      name: 'humidity',
-      label: 'Humidity (%)',
-      field: 'humidity',
-      format: val => parseFloat(val).toFixed(1),
-      sortable: true
-    },
   ]
   export default {
     setup () {
-      const store = useAhtStore()
-      const rows = computed(() => store.get_items_array)
+      const store = useDs18b20Store()
+      const rows = computed(() => store.get_items_array);
       return {
         store,
         columns,
@@ -54,7 +47,7 @@ import { useLayoutStore } from 'src/stores/layout'
     },
     mounted (){
       const store = useLayoutStore()
-      store.set_selected_menu('AHT25')
+      store.set_selected_menu('DS18B20')
       store.set_selected_submenu(this.$route.query.opt)
       store.set_filter(this.$route.query.filter)
     }

@@ -156,7 +156,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching ds18b20 min measurements */
     httpd_uri_t ds18b20_data_get_min_uri = {
-        .uri = "/api/v1/ds18b20/read/min",
+        .uri = "/api/v1/ds18b20/read/temperature/min",
         .method = HTTP_GET,
         .handler = ds18b20_data_get_min_handler,
         .user_ctx = rest_context
@@ -165,7 +165,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching ds18b20 max measurements */
     httpd_uri_t ds18b20_data_get_max_uri = {
-        .uri = "/api/v1/ds18b20/read/max",
+        .uri = "/api/v1/ds18b20/read/temperature/max",
         .method = HTTP_GET,
         .handler = ds18b20_data_get_max_handler,
         .user_ctx = rest_context
@@ -174,7 +174,7 @@ esp_err_t start_rest_server(const char *base_path)
 
     /* URI handler for fetching ds18b20 avg measurements */
     httpd_uri_t ds18b20_data_get_avg_uri = {
-        .uri = "/api/v1/ds18b20/read/avg",
+        .uri = "/api/v1/ds18b20/read/temperature/avg",
         .method = HTTP_GET,
         .handler = ds18b20_data_get_avg_handler,
         .user_ctx = rest_context

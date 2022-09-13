@@ -10,6 +10,7 @@
       <div class="mt-20">System time: </div>
       <div class="right date-field">
       <q-input
+        dense
         filled
         v-model="sys_date"
         type="date"
@@ -18,6 +19,7 @@
       </div>
       <div class="right time-field">
       <q-input
+        dense
         filled
         type="time"
         v-model="sys_time"
@@ -30,6 +32,7 @@
       <div class="mt-20">Begin loging: </div>
       <div class="right date-field">
       <q-input
+        dense
         filled
         v-model="begin_date"
         type="date"
@@ -38,6 +41,7 @@
       </div>
       <div class="right time-field">
       <q-input
+        dense
         filled
         type="time"
         v-model="begin_time"
@@ -50,6 +54,7 @@
       <div class="mt-20">End loging: </div>
       <div class="right date-field">
       <q-input
+        dense
         filled
         v-model="end_date"
         type="date"
@@ -59,6 +64,7 @@
       </div>
       <div class="right time-field">
       <q-input
+        dense
         filled
         type="time"
         v-model="end_time"
@@ -79,7 +85,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useLayoutStore } from 'src/stores/layout'
 import { useSetStore } from 'src/stores/set'
@@ -87,8 +93,6 @@ import { useSetStore } from 'src/stores/set'
 
 export default {
   setup () {
-    const store = useSetStore()
-
     const sys_date = ref('2022-09-11')
     const sys_time = ref('10:00:00')
     const begin_date = ref('2022-09-11')
@@ -115,7 +119,8 @@ export default {
     }
   },
   mounted () {
-    axios.get("/api/v1/settings/info")
+    this.sys_date = useSetStore().get_default_sys_date
+    /*axios.get("/api/v1/settings/info")
         .then(response => {
           if(response.data.sys_date.length > 0){
             this.sys_date = response.data.sys_date
@@ -128,12 +133,12 @@ export default {
         })
         .catch(error => {
           console.log(error);
-        });
+        });*/
   },
   methods: {
     onSubmit () {
       const layout = useLayoutStore()
-      layout.wait_spinner_show()
+      layout.gear_spinner_show()
       axios.post("/api/v1/settings/hwclock", {
             sys_date: this.sys_date,
             sys_time: this.sys_time,
@@ -145,7 +150,7 @@ export default {
             .then(response => {
               setTimeout(() => {
                 console.log(response.data.message)
-                layout.wait_spinner_hide()
+                layout.gear_spinner_hide()
                 const path = layout.get_first_available_page
                 //console.log(path)
                 this.$router.push({ path: path })
@@ -153,7 +158,7 @@ export default {
               2000)
             })
             .catch(error => {
-             layout.wait_spinner_hide()
+             layout.gear_spinner_hide()
               console.log(error)
             });
     },

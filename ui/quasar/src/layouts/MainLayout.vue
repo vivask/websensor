@@ -240,18 +240,27 @@
   </q-layout>
 
   <q-dialog
-  v-model="waitSpinner"
+  v-model="loadInner"
   maximized
   >
-        <WaitSpinner/>
+    <LoadInner/>
   </q-dialog>
+
+  <q-dialog
+  v-model="gearInner"
+  maximized
+  >
+    <GearInner/>
+  </q-dialog>
+
 
 </template>
 
 <script>
 import { defineComponent, ref, computed } from 'vue'
 import { useLayoutStore } from 'src/stores/layout'
-import WaitSpinner from 'components/WaitSpinner.vue';
+import LoadInner from 'components/LoadInner.vue';
+import GearInner from 'components/GearInner.vue';
 import axios from 'axios'
 
 
@@ -259,8 +268,9 @@ export default defineComponent({
   name: 'MainLayout',
 
   components: {
-    WaitSpinner
-  },
+    LoadInner,
+    GearInner
+},
 
   setup () {
     const store = useLayoutStore()
@@ -280,7 +290,8 @@ export default defineComponent({
       ahtActive: computed(() => store.aht_is_available),
       ds18b20Active: computed(() => store.ds18b20_is_available),
       bmx280Active: computed(() => store.bmx280_is_available),
-      waitSpinner: computed(() => store.wait_spinner),
+      loadInner: computed(() => store.load_spinner),
+      gearInner: computed(() => store.gear_spinner),
       activeSettings: computed(() => store.is_active_settings),
       activeAhtHumidity: computed(() => store.is_active_ath_humidity),
       activeAhtTemperature: computed(() => store.is_active_ath_temperature),

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAhtStore } from 'src/stores/aht'
+import { useBmx280Store } from 'src/stores/bmx280'
+import { useDs18b20Store } from 'src/stores/ds18b20'
 import axios from 'axios'
 
 export const useLayoutStore = defineStore('layout', {
@@ -9,7 +11,8 @@ export const useLayoutStore = defineStore('layout', {
     current_path: ref('/'),
     selected_menu: ref('Settings'),
     selected_submenu: ref(''),
-    wait_spinner: false,
+    load_spinner: false,
+    gear_spinner: false,
     is_sensor_page: false,
     is_aht_page: false,
     is_ds18b20_page: false,
@@ -112,20 +115,27 @@ export const useLayoutStore = defineStore('layout', {
         case '/':
           break
         case '/aht':
-          const store = useAhtStore()
-          store.update_items_array()
+          useAhtStore().update_items_array()
           break
         case '/ds18b20':
+          useDs18b20Store().update_items_array()
           break
         case '/bmx280':
+          useBmx280Store().update_items_array()
           break
       }
     },
-    wait_spinner_show () {
-      this.wait_spinner = true;
+    load_spinner_show () {
+      this.load_spinner = true;
     },
-    wait_spinner_hide () {
-      this.wait_spinner = false;
+    load_spinner_hide () {
+      this.load_spinner = false;
+    },
+    gear_spinner_show () {
+      this.gear_spinner = true;
+    },
+    gear_spinner_hide () {
+      this.gear_spinner = false;
     },
     set_aht_available (new_value) {
       this.aht_is_available = new_value

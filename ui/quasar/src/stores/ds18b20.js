@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia';
 import { useLayoutStore } from 'src/stores/layout';
 import axios from 'axios'
-import { ref } from 'vue';
 
-export const useAhtStore = defineStore('aht', {
+export const useDs18b20Store = defineStore('ds18b20', {
 
   state: () => ({
     store: useLayoutStore(),
@@ -19,47 +18,47 @@ export const useAhtStore = defineStore('aht', {
   actions: {
     update_items_array() {
       const filter = this.store.get_filter;
-      var uri = "/api/v1/aht/read/" + this.store.selected_submenu + "/" + filter;
+      var uri = "/api/v1/ds18b20/read/" + this.store.selected_submenu + "/" + filter;
       if(filter == 'all'){
         //"count items on page:page num"
-        uri = "/api/v1/aht/read/" + filter + "/100:1";
-        this.store.wait_spinner_show();
+        uri = "/api/v1/ds18b20/read/" + filter + "/100:1";
+        this.store.load_spinner_show();
       }
-      console.log('[AHT] Uri: ',uri);
+      console.log('[DS18B20] Uri: ',uri);
       //this.items_array = [];
       axios.get(uri)
         .then(response => {
           this.items_array = response.data.items;
           const pages = response.data.pages;
           if(filter != 'all' || pages == 1){
-            this.store.wait_spinner_hide();
+            this.store.load_spinner_hide();
           }else{
-            this.get_next_page_aht(2, pages)
+            this.get_next_page(2, pages)
             .then(response => {
-              this.store.wait_spinner_hide();
+              this.store.load_spinner_hide();
             })
             .catch(error => {
               console.log(error);
-              this.store.wait_spinner_hide();
+              this.store.load_spinner_hide();
             });
           }
         })
         .catch(error => {
           console.log(error);
-          this.store.wait_spinner_hide();
+          this.store.load_spinner_hide();
         });
     },
-    get_next_page_aht(page, pages){
+    get_next_page(page, pages){
       if(page <= pages){
         const filter = this.store.get_filter;
-        const uri = "/api/v1/aht/read/" + filter + "/100:" + page;
-        console.log('[AHT] ', page, '/', pages, ' Uri: ', uri);
+        const uri = "/api/v1/ds18b20/read/" + filter + "/100:" + page;
+        console.log('[DS18B20] ', page, '/', pages, ' Uri: ', uri);
         return axios.get(uri)
           .then(response => {
             this.items_array = this.items_array.concat(response.data.items);
             page++;
             if(page <= pages){
-              return this.get_next_page_aht(page, pages);
+              return this.get_next_page(page, pages);
             }
           })
           .catch(error => {
